@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import {
   AppShell,
   Badge,
@@ -18,7 +19,9 @@ import {
   IconLayoutDashboard,
   IconBox,
   IconSettings,
+  IconBook,
 } from "@tabler/icons-react";
+import GlossaryPage from "./pages/GlossaryPage";
 
 // ---------- Types ----------
 
@@ -141,11 +144,14 @@ const PALETTE_OPTIONS: { value: PaletteKey; label: string }[] = Object.keys(
   label: key,
 }));
 
-const API_BASE = "http://localhost:8080";
+const API_BASE =
+  import.meta.env.VITE_API_BASE || "http://localhost:8080";
 
 // ---------- Main Component ----------
 
 const App: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [paletteKey, setPaletteKey] =
     useState<PaletteKey>("Regal Navy & Gold");
   const palette = PALETTES[paletteKey];
@@ -163,6 +169,15 @@ const App: React.FC = () => {
 
   type NavKey = "overview" | "workspaces" | "nodes" | "settings";
   const [activeNav, setActiveNav] = useState<NavKey>("workspaces");
+
+  // Sync activeNav with route
+  useEffect(() => {
+    if (location.pathname === "/glossary") {
+      // Don't set activeNav for glossary, it's separate
+    } else if (location.pathname === "/") {
+      // Keep current activeNav for workspace browser
+    }
+  }, [location.pathname]);
 
   // Fetch workspaces on mount
   useEffect(() => {
@@ -311,13 +326,18 @@ const App: React.FC = () => {
             leftSection={
               <IconLayoutDashboard size={18} color={palette.textSoft} />
             }
-            active={activeNav === "overview"}
-            onClick={() => setActiveNav("overview")}
+            active={activeNav === "overview" && location.pathname === "/"}
+            onClick={() => {
+              navigate("/");
+              setActiveNav("overview");
+            }}
             styles={{
               root: {
                 borderRadius: 8,
                 backgroundColor:
-                  activeNav === "overview" ? palette.surface : "transparent",
+                  activeNav === "overview" && location.pathname === "/"
+                    ? palette.surface
+                    : "transparent",
               },
               label: { color: palette.text },
               description: { color: palette.textSoft },
@@ -328,13 +348,16 @@ const App: React.FC = () => {
             label="Workspaces"
             description="Tenants and surfaces"
             leftSection={<IconBox size={18} color={palette.textSoft} />}
-            active={activeNav === "workspaces"}
-            onClick={() => setActiveNav("workspaces")}
+            active={activeNav === "workspaces" && location.pathname === "/"}
+            onClick={() => {
+              navigate("/");
+              setActiveNav("workspaces");
+            }}
             styles={{
               root: {
                 borderRadius: 8,
                 backgroundColor:
-                  activeNav === "workspaces"
+                  activeNav === "workspaces" && location.pathname === "/"
                     ? palette.surface
                     : "transparent",
               },
@@ -347,13 +370,18 @@ const App: React.FC = () => {
             label="Nodes"
             description="Active cores"
             leftSection={<IconBox size={18} color={palette.textSoft} />}
-            active={activeNav === "nodes"}
-            onClick={() => setActiveNav("nodes")}
+            active={activeNav === "nodes" && location.pathname === "/"}
+            onClick={() => {
+              navigate("/");
+              setActiveNav("nodes");
+            }}
             styles={{
               root: {
                 borderRadius: 8,
                 backgroundColor:
-                  activeNav === "nodes" ? palette.surface : "transparent",
+                  activeNav === "nodes" && location.pathname === "/"
+                    ? palette.surface
+                    : "transparent",
               },
               label: { color: palette.text },
               description: { color: palette.textSoft },
@@ -364,13 +392,35 @@ const App: React.FC = () => {
             label="Settings"
             description="Continuum options"
             leftSection={<IconSettings size={18} color={palette.textSoft} />}
-            active={activeNav === "settings"}
-            onClick={() => setActiveNav("settings")}
+            active={activeNav === "settings" && location.pathname === "/"}
+            onClick={() => {
+              navigate("/");
+              setActiveNav("settings");
+            }}
             styles={{
               root: {
                 borderRadius: 8,
                 backgroundColor:
-                  activeNav === "settings"
+                  activeNav === "settings" && location.pathname === "/"
+                    ? palette.surface
+                    : "transparent",
+              },
+              label: { color: palette.text },
+              description: { color: palette.textSoft },
+            }}
+          />
+
+          <NavLink
+            label="Glossary"
+            description="Continuum terminology"
+            leftSection={<IconBook size={18} color={palette.textSoft} />}
+            active={location.pathname === "/glossary"}
+            onClick={() => navigate("/glossary")}
+            styles={{
+              root: {
+                borderRadius: 8,
+                backgroundColor:
+                  location.pathname === "/glossary"
                     ? palette.surface
                     : "transparent",
               },
@@ -383,24 +433,46 @@ const App: React.FC = () => {
 
       {/* Main content */}
       <AppShell.Main>
-        <Container size="xl" py="lg">
-          <Stack gap="md">
-            {/* Banner */}
-            <Paper
-              shadow="sm"
-              p="md"
-              radius="md"
-              style={{
-                backgroundColor: palette.surface,
-                border: `1px solid ${palette.border}`,
-              }}
-            >
-              <Text size="sm" c={palette.textSoft}>
-                This is the first Continuum Surface. Select a palette, click a
-                workspace, and Continuum will fetch its nodes from Continuum
-                Core.
-              </Text>
-            </Paper>
+        <Routes>
+          <Route
+            path="/glossary"
+            element={
+              <div
+                style={{
+                  backgroundColor: palette.background,
+                  minHeight: "100vh",
+                }}
+              >
+                <GlossaryPage />
+              </div>
+            }
+          />
+          <Route
+            path="/"
+            element={
+              <Container size="xl" py="lg">
+                <Stack gap="md">
+                  {/* Banner */}
+                  <Paper
+                    shadow="sm"
+                    p="md"
+                    radius="md"
+                    style={{
+                      backgroundColor: palette.surface,
+                      border: `1px solid ${palette.border}`,
+                    }}
+                  >
+                    <Stack gap="xs">
+                      <Text size="sm" c={palette.textSoft}>
+                        This is the first Continuum Surface. Select a palette, click a
+                        workspace, and Continuum will fetch its nodes from Continuum
+                        Core.
+                      </Text>
+                      <Text size="xs" c={palette.textSoft}>
+                        API Base: {API_BASE}
+                      </Text>
+                    </Stack>
+                  </Paper>
 
             {/* Overview card */}
             {activeNav === "overview" && (
@@ -731,8 +803,11 @@ const App: React.FC = () => {
                 </Stack>
               </Paper>
             )}
-          </Stack>
-        </Container>
+                </Stack>
+              </Container>
+            }
+          />
+        </Routes>
       </AppShell.Main>
     </AppShell>
   );
