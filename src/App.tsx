@@ -174,42 +174,32 @@ const App: React.FC = () => {
   const [nodesLoading, setNodesLoading] = useState(false);
   const [nodesError, setNodesError] = useState<string | null>(null);
 
-  // Fetch workspaces on mount
-  useEffect(() => {
-    const fetchWorkspaces = async () => {
-      try {
-        setWorkspacesLoading(true);
-        setWorkspacesError(null);
-
-        const res = await fetch(`${API_BASE}/api/workspaces`);
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-        const data = (await res.json()) as Workspace[];
-        setWorkspaces(data);
-      } catch (err: any) {
-        console.error("Error loading workspaces", err);
-        setWorkspacesError(err?.message ?? "Failed to load workspaces");
-      } finally {
-        setWorkspacesLoading(false);
-      }
-    };
-
-    fetchWorkspaces();
-  }, []);
-
-  const handleWorkspaceClick = async (workspace: Workspace) => {
-    console.log("Clicked workspace", workspace.id, workspace.name);
-    setSelectedWorkspace(workspace);
-    setNodes([]);
-    setNodesError(null);
-    setNodesLoading(true);
-
+  const fetchWorkspaces = async () => {
     try {
+      setWorkspacesLoading(true);
+      setWorkspacesError(null);
+
+      const res = await fetch(`${API_BASE}/api/workspaces`);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      const data = (await res.json()) as Workspace[];
+      setWorkspaces(data);
+    } catch (err: any) {
+      console.error("Error loading workspaces", err);
+      setWorkspacesError(err?.message ?? "Failed to load workspaces");
+    } finally {
+      setWorkspacesLoading(false);
+    }
+  };
+
+  const fetchNodes = async (workspaceId: string) => {
+    try {
+      setNodesLoading(true);
+      setNodesError(null);
+
       const res = await fetch(
-        `${API_BASE}/api/nodes?workspaceId=${encodeURIComponent(
-          workspace.id
-        )}`
+        `${API_BASE}/api/nodes?workspaceId=${encodeURIComponent(workspaceId)}`
       );
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}`);
@@ -222,6 +212,20 @@ const App: React.FC = () => {
     } finally {
       setNodesLoading(false);
     }
+  };
+
+  // Fetch workspaces on mount
+  useEffect(() => {
+    fetchWorkspaces();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleWorkspaceClick = async (workspace: Workspace) => {
+    console.log("Clicked workspace", workspace.id, workspace.name);
+    setSelectedWorkspace(workspace);
+    setNodes([]);
+    setNodesError(null);
+    await fetchNodes(workspace.id);
   };
 
   return (
@@ -491,6 +495,8 @@ const App: React.FC = () => {
                     nodesLoading={nodesLoading}
                     nodesError={nodesError}
                     onWorkspaceClick={handleWorkspaceClick}
+                    onRefreshWorkspaces={fetchWorkspaces}
+                    onRefreshNodes={selectedWorkspace ? () => fetchNodes(selectedWorkspace.id) : undefined}
                     palette={palette}
                     TERMS={TERMS}
                     API_BASE={API_BASE}

@@ -1,13 +1,19 @@
-import React from "react";
+import React, { useState } from "react";
 import {
+  Alert,
   Badge,
+  Button,
   Group,
   Loader,
+  Modal,
   Paper,
+  Select,
   Stack,
   Table,
   Text,
+  TextInput,
 } from "@mantine/core";
+import { IconPlus } from "@tabler/icons-react";
 
 type Workspace = {
   id: string;
@@ -51,6 +57,8 @@ type WorkspacesPageProps = {
   nodesLoading: boolean;
   nodesError: string | null;
   onWorkspaceClick: (workspace: Workspace) => void;
+  onRefreshWorkspaces: () => Promise<void>;
+  onRefreshNodes?: () => Promise<void>;
   palette: any;
   TERMS: { tenant: string; tenants: string };
   API_BASE: string;
@@ -65,10 +73,117 @@ export default function WorkspacesPage({
   nodesLoading,
   nodesError,
   onWorkspaceClick,
+  onRefreshWorkspaces,
+  onRefreshNodes,
   palette,
   TERMS,
   API_BASE,
 }: WorkspacesPageProps) {
+  // Extract unique owners from workspaces
+  const owners = Array.from(
+    new Map(workspaces.map((ws) => [ws.tenant.id, ws.tenant])).values()
+  );
+  const hasSingleOwner = owners.length === 1;
+  const defaultOwnerId = hasSingleOwner ? owners[0].id : null;
+
+  // Create Workspace modal state
+  const [createWorkspaceOpened, setCreateWorkspaceOpened] = useState(false);
+  const [workspaceName, setWorkspaceName] = useState("");
+  const [selectedOwnerId, setSelectedOwnerId] = useState<string | null>(
+    defaultOwnerId
+  );
+  const [creatingWorkspace, setCreatingWorkspace] = useState(false);
+  const [workspaceCreateError, setWorkspaceCreateError] = useState<
+    string | null
+  >(null);
+
+  // Create Node modal state
+  const [createNodeOpened, setCreateNodeOpened] = useState(false);
+  const [nodeName, setNodeName] = useState("");
+  const [creatingNode, setCreatingNode] = useState(false);
+  const [nodeCreateError, setNodeCreateError] = useState<string | null>(null);
+
+  const handleCreateWorkspace = async () => {
+    if (!workspaceName.trim() || !selectedOwnerId) {
+      return;
+    }
+
+    setCreatingWorkspace(true);
+    setWorkspaceCreateError(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/workspaces`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tenantId: selectedOwnerId,
+          name: workspaceName.trim(),
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `HTTP ${res.status}: Failed to create workspace`
+        );
+      }
+
+      // Refresh workspaces list
+      await onRefreshWorkspaces();
+      setCreateWorkspaceOpened(false);
+      setWorkspaceName("");
+      setSelectedOwnerId(defaultOwnerId);
+    } catch (err: any) {
+      console.error("Error creating workspace", err);
+      setWorkspaceCreateError(err?.message ?? "Failed to create workspace");
+    } finally {
+      setCreatingWorkspace(false);
+    }
+  };
+
+  const handleCreateNode = async () => {
+    if (!nodeName.trim() || !selectedWorkspace) {
+      return;
+    }
+
+    setCreatingNode(true);
+    setNodeCreateError(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/nodes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          workspaceId: selectedWorkspace.id,
+          name: nodeName.trim(),
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `HTTP ${res.status}: Failed to create node`
+        );
+      }
+
+      // Refresh nodes list
+      if (onRefreshNodes) {
+        await onRefreshNodes();
+      }
+      setCreateNodeOpened(false);
+      setNodeName("");
+    } catch (err: any) {
+      console.error("Error creating node", err);
+      setNodeCreateError(err?.message ?? "Failed to create node");
+    } finally {
+      setCreatingNode(false);
+    }
+  };
+
   return (
     <Stack gap="md">
       {/* Workspaces card */}
@@ -86,11 +201,26 @@ export default function WorkspacesPage({
             <Text fw={600} size="lg">
               Workspaces
             </Text>
-            {selectedWorkspace && (
-              <Badge color="yellow" variant="light">
-                {selectedWorkspace.tenant.name} / {selectedWorkspace.name}
-              </Badge>
-            )}
+            <Group gap="xs">
+              {selectedWorkspace && (
+                <Badge color="yellow" variant="light">
+                  {selectedWorkspace.tenant.name} / {selectedWorkspace.name}
+                </Badge>
+              )}
+              <Button
+                leftSection={<IconPlus size={16} />}
+                onClick={() => setCreateWorkspaceOpened(true)}
+                size="sm"
+                styles={{
+                  root: {
+                    backgroundColor: palette.accent,
+                    color: palette.background,
+                  },
+                }}
+              >
+                Create Workspace
+              </Button>
+            </Group>
           </Group>
 
           <Text size="xs" c={palette.textSoft}>
@@ -202,6 +332,20 @@ export default function WorkspacesPage({
               <Text fw={600} size="lg">
                 Nodes for {selectedWorkspace.name}
               </Text>
+              <Button
+                leftSection={<IconPlus size={16} />}
+                onClick={() => setCreateNodeOpened(true)}
+                size="sm"
+                disabled={!selectedWorkspace}
+                styles={{
+                  root: {
+                    backgroundColor: palette.accent,
+                    color: palette.background,
+                  },
+                }}
+              >
+                Create Node
+              </Button>
             </Group>
 
             {nodesLoading && (
@@ -274,6 +418,206 @@ export default function WorkspacesPage({
           </Stack>
         </Paper>
       )}
+
+      {/* Create Workspace Modal */}
+      <Modal
+        opened={createWorkspaceOpened}
+        onClose={() => {
+          setCreateWorkspaceOpened(false);
+          setWorkspaceName("");
+          setSelectedOwnerId(defaultOwnerId);
+          setWorkspaceCreateError(null);
+        }}
+        title="Create Workspace"
+        styles={{
+          content: {
+            backgroundColor: palette.surface,
+            color: palette.text,
+          },
+          header: {
+            backgroundColor: palette.header,
+            color: palette.text,
+          },
+        }}
+      >
+        <Stack gap="md">
+          {workspaceCreateError && (
+            <Alert
+              color="red"
+              title="Error"
+              styles={{
+                root: {
+                  backgroundColor: palette.surface,
+                },
+              }}
+            >
+              {workspaceCreateError}
+            </Alert>
+          )}
+
+          {!hasSingleOwner && (
+            <Select
+              label="Owner"
+              placeholder="Select an owner"
+              value={selectedOwnerId}
+              onChange={(value) => setSelectedOwnerId(value)}
+              data={owners.map((owner) => ({
+                value: owner.id,
+                label: owner.name,
+              }))}
+              required
+              styles={{
+                input: {
+                  backgroundColor: palette.header,
+                  borderColor: palette.border,
+                  color: palette.text,
+                },
+                dropdown: {
+                  backgroundColor: palette.surface,
+                },
+              }}
+            />
+          )}
+
+          <TextInput
+            label="Workspace Name"
+            placeholder="Enter workspace name"
+            value={workspaceName}
+            onChange={(e) => setWorkspaceName(e.target.value)}
+            required
+            styles={{
+              input: {
+                backgroundColor: palette.header,
+                borderColor: palette.border,
+                color: palette.text,
+              },
+            }}
+          />
+
+          <Group justify="flex-end" gap="xs">
+            <Button
+              variant="subtle"
+              onClick={() => {
+                setCreateWorkspaceOpened(false);
+                setWorkspaceName("");
+                setSelectedOwnerId(defaultOwnerId);
+                setWorkspaceCreateError(null);
+              }}
+              disabled={creatingWorkspace}
+              styles={{
+                root: {
+                  color: palette.text,
+                },
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateWorkspace}
+              disabled={!workspaceName.trim() || !selectedOwnerId || creatingWorkspace}
+              loading={creatingWorkspace}
+              styles={{
+                root: {
+                  backgroundColor: palette.accent,
+                  color: palette.background,
+                },
+              }}
+            >
+              Create
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
+      {/* Create Node Modal */}
+      <Modal
+        opened={createNodeOpened}
+        onClose={() => {
+          setCreateNodeOpened(false);
+          setNodeName("");
+          setNodeCreateError(null);
+        }}
+        title="Create Node"
+        styles={{
+          content: {
+            backgroundColor: palette.surface,
+            color: palette.text,
+          },
+          header: {
+            backgroundColor: palette.header,
+            color: palette.text,
+          },
+        }}
+      >
+        <Stack gap="md">
+          {nodeCreateError && (
+            <Alert
+              color="red"
+              title="Error"
+              styles={{
+                root: {
+                  backgroundColor: palette.surface,
+                },
+              }}
+            >
+              {nodeCreateError}
+            </Alert>
+          )}
+
+          {selectedWorkspace && (
+            <Text size="sm" c={palette.textSoft}>
+              Workspace: {selectedWorkspace.name}
+            </Text>
+          )}
+
+          <TextInput
+            label="Node Name"
+            placeholder="Enter node name"
+            value={nodeName}
+            onChange={(e) => setNodeName(e.target.value)}
+            required
+            styles={{
+              input: {
+                backgroundColor: palette.header,
+                borderColor: palette.border,
+                color: palette.text,
+              },
+            }}
+          />
+
+          <Group justify="flex-end" gap="xs">
+            <Button
+              variant="subtle"
+              onClick={() => {
+                setCreateNodeOpened(false);
+                setNodeName("");
+                setNodeCreateError(null);
+              }}
+              disabled={creatingNode}
+              styles={{
+                root: {
+                  color: palette.text,
+                },
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateNode}
+              disabled={!nodeName.trim() || !selectedWorkspace || creatingNode}
+              loading={creatingNode}
+              styles={{
+                root: {
+                  backgroundColor: palette.accent,
+                  color: palette.background,
+                },
+              }}
+            >
+              Create
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Stack>
   );
 }
