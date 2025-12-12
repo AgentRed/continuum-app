@@ -1,16 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation, Link } from "react-router-dom";
 import {
   AppShell,
-  Badge,
   Container,
   Group,
-  Loader,
   NavLink,
   Paper,
   Select,
   Stack,
-  Table,
   Text,
 } from "@mantine/core";
 import {
@@ -22,6 +19,10 @@ import {
   IconBook,
 } from "@tabler/icons-react";
 import GlossaryPage from "./pages/GlossaryPage";
+import OverviewPage from "./pages/OverviewPage";
+import WorkspacesPage from "./pages/WorkspacesPage";
+import NodesPage from "./pages/NodesPage";
+import SettingsPage from "./pages/SettingsPage";
 
 // ---------- Types ----------
 
@@ -158,7 +159,6 @@ const TERMS = {
 
 const App: React.FC = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const [paletteKey, setPaletteKey] =
     useState<PaletteKey>("Regal Navy & Gold");
   const palette = PALETTES[paletteKey];
@@ -173,18 +173,6 @@ const App: React.FC = () => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [nodesLoading, setNodesLoading] = useState(false);
   const [nodesError, setNodesError] = useState<string | null>(null);
-
-  type NavKey = "overview" | "workspaces" | "nodes" | "settings";
-  const [activeNav, setActiveNav] = useState<NavKey>("workspaces");
-
-  // Sync activeNav with route
-  useEffect(() => {
-    if (location.pathname === "/glossary") {
-      // Don't set activeNav for glossary, it's separate
-    } else if (location.pathname === "/") {
-      // Keep current activeNav for workspace browser
-    }
-  }, [location.pathname]);
 
   // Fetch workspaces on mount
   useEffect(() => {
@@ -216,7 +204,6 @@ const App: React.FC = () => {
     setNodes([]);
     setNodesError(null);
     setNodesLoading(true);
-    setActiveNav("nodes");
 
     try {
       const res = await fetch(
@@ -333,16 +320,14 @@ const App: React.FC = () => {
             leftSection={
               <IconLayoutDashboard size={18} color={palette.textSoft} />
             }
-            active={activeNav === "overview" && location.pathname === "/"}
-            onClick={() => {
-              navigate("/");
-              setActiveNav("overview");
-            }}
+            component={Link}
+            to="/overview"
+            active={location.pathname === "/overview"}
             styles={{
               root: {
                 borderRadius: 8,
                 backgroundColor:
-                  activeNav === "overview" && location.pathname === "/"
+                  location.pathname === "/overview"
                     ? palette.surface
                     : "transparent",
               },
@@ -355,16 +340,14 @@ const App: React.FC = () => {
             label="Workspaces"
             description={`${TERMS.tenants} and surfaces`}
             leftSection={<IconBox size={18} color={palette.textSoft} />}
-            active={activeNav === "workspaces" && location.pathname === "/"}
-            onClick={() => {
-              navigate("/");
-              setActiveNav("workspaces");
-            }}
+            component={Link}
+            to="/workspaces"
+            active={location.pathname === "/workspaces"}
             styles={{
               root: {
                 borderRadius: 8,
                 backgroundColor:
-                  activeNav === "workspaces" && location.pathname === "/"
+                  location.pathname === "/workspaces"
                     ? palette.surface
                     : "transparent",
               },
@@ -377,16 +360,14 @@ const App: React.FC = () => {
             label="Nodes"
             description="Active cores"
             leftSection={<IconBox size={18} color={palette.textSoft} />}
-            active={activeNav === "nodes" && location.pathname === "/"}
-            onClick={() => {
-              navigate("/");
-              setActiveNav("nodes");
-            }}
+            component={Link}
+            to="/nodes"
+            active={location.pathname === "/nodes"}
             styles={{
               root: {
                 borderRadius: 8,
                 backgroundColor:
-                  activeNav === "nodes" && location.pathname === "/"
+                  location.pathname === "/nodes"
                     ? palette.surface
                     : "transparent",
               },
@@ -399,16 +380,14 @@ const App: React.FC = () => {
             label="Settings"
             description="Continuum options"
             leftSection={<IconSettings size={18} color={palette.textSoft} />}
-            active={activeNav === "settings" && location.pathname === "/"}
-            onClick={() => {
-              navigate("/");
-              setActiveNav("settings");
-            }}
+            component={Link}
+            to="/settings"
+            active={location.pathname === "/settings"}
             styles={{
               root: {
                 borderRadius: 8,
                 backgroundColor:
-                  activeNav === "settings" && location.pathname === "/"
+                  location.pathname === "/settings"
                     ? palette.surface
                     : "transparent",
               },
@@ -421,8 +400,9 @@ const App: React.FC = () => {
             label="Glossary"
             description="Continuum terminology"
             leftSection={<IconBook size={18} color={palette.textSoft} />}
+            component={Link}
+            to="/glossary"
             active={location.pathname === "/glossary"}
-            onClick={() => navigate("/glossary")}
             styles={{
               root: {
                 borderRadius: 8,
@@ -441,25 +421,12 @@ const App: React.FC = () => {
       {/* Main content */}
       <AppShell.Main>
         <Routes>
+          <Route path="/" element={<Navigate to="/workspaces" replace />} />
           <Route
-            path="/glossary"
-            element={
-              <div
-                style={{
-                  backgroundColor: palette.background,
-                  minHeight: "100vh",
-                }}
-              >
-                <GlossaryPage />
-              </div>
-            }
-          />
-          <Route
-            path="/"
+            path="/overview"
             element={
               <Container size="xl" py="lg">
                 <Stack gap="md">
-                  {/* Banner */}
                   <Paper
                     shadow="sm"
                     p="md"
@@ -480,338 +447,89 @@ const App: React.FC = () => {
                       </Text>
                     </Stack>
                   </Paper>
-
-            {/* Overview card */}
-            {activeNav === "overview" && (
-              <Paper
-                shadow="sm"
-                p="md"
-                radius="md"
-                style={{
-                  backgroundColor: palette.surface,
-                  border: `1px solid ${palette.border}`,
-                }}
-              >
-                <Stack gap="xs">
-                  <Text fw={600} size="lg">
-                    Overview
-                  </Text>
-                  <Text size="sm" c={palette.textSoft}>
-                    Continuum at a glance
-                  </Text>
-                  <Group gap="md" mt="md">
-                    <Paper
-                      p="md"
-                      radius="md"
-                      style={{
-                        backgroundColor: palette.header,
-                        border: `1px solid ${palette.border}`,
-                      }}
-                    >
-                      <Stack gap={4}>
-                        <Text size="xs" c={palette.textSoft}>
-                          Total Workspaces
-                        </Text>
-                        <Text fw={700} size="xl" c={palette.text}>
-                          {workspaces.length}
-                        </Text>
-                      </Stack>
-                    </Paper>
-                    {selectedWorkspace && (
-                      <Paper
-                        p="md"
-                        radius="md"
-                        style={{
-                          backgroundColor: palette.header,
-                          border: `1px solid ${palette.border}`,
-                        }}
-                      >
-                        <Stack gap={4}>
-                          <Text size="xs" c={palette.textSoft}>
-                            Selected Workspace
-                          </Text>
-                          <Text fw={700} size="xl" c={palette.text}>
-                            {selectedWorkspace.name}
-                          </Text>
-                        </Stack>
-                      </Paper>
-                    )}
-                    {selectedWorkspace && nodes.length > 0 && (
-                      <Paper
-                        p="md"
-                        radius="md"
-                        style={{
-                          backgroundColor: palette.header,
-                          border: `1px solid ${palette.border}`,
-                        }}
-                      >
-                        <Stack gap={4}>
-                          <Text size="xs" c={palette.textSoft}>
-                            Nodes Loaded
-                          </Text>
-                          <Text fw={700} size="xl" c={palette.text}>
-                            {nodes.length}
-                          </Text>
-                        </Stack>
-                      </Paper>
-                    )}
-                  </Group>
-                </Stack>
-              </Paper>
-            )}
-
-            {/* Workspaces card */}
-            {activeNav === "workspaces" && (
-              <Paper
-                shadow="sm"
-                p="md"
-                radius="md"
-                style={{
-                  backgroundColor: palette.surface,
-                  border: `1px solid ${palette.border}`,
-                }}
-              >
-                <Stack gap="xs">
-                  <Group justify="space-between" align="center">
-                    <Text fw={600} size="lg">
-                      Workspaces
-                    </Text>
-                    {selectedWorkspace && (
-                      <Badge color="yellow" variant="light">
-                        {selectedWorkspace.tenant.name} /{" "}
-                        {selectedWorkspace.name}
-                      </Badge>
-                    )}
-                  </Group>
-
-                  <Text size="xs" c={palette.textSoft}>
-                    Fetched from Continuum Core at {API_BASE}
-                  </Text>
-
-                  {workspacesLoading && (
-                    <Group gap="xs">
-                      <Loader size="sm" />
-                      <Text size="sm">Loading workspaces…</Text>
-                    </Group>
-                  )}
-
-                  {workspacesError && (
-                    <Text size="sm" c="red.3">
-                      {workspacesError}
-                    </Text>
-                  )}
-
-                  {!workspacesLoading && !workspacesError && (
-                    <Table
-                      highlightOnHover
-                      verticalSpacing="xs"
-                      horizontalSpacing="md"
-                      withTableBorder
-                      withColumnBorders
-                      styles={{
-                        table: {
-                          backgroundColor: "transparent",
-                        },
-                        th: {
-                          backgroundColor: palette.header,
-                          color: palette.textSoft,
-                          borderColor: palette.border,
-                        },
-                        td: {
-                          borderColor: palette.border,
-                          color: palette.text,
-                        },
-                      }}
-                    >
-                      <Table.Thead>
-                        <Table.Tr>
-                          <Table.Th>{TERMS.tenant}</Table.Th>
-                          <Table.Th>Workspace</Table.Th>
-                          <Table.Th style={{ textAlign: "center" }}>
-                            Nodes
-                          </Table.Th>
-                          <Table.Th>Created</Table.Th>
-                        </Table.Tr>
-                      </Table.Thead>
-                      <Table.Tbody>
-                        {workspaces.map((workspace) => {
-                          const isSelected =
-                            selectedWorkspace?.id === workspace.id;
-                          return (
-                            <Table.Tr
-                              key={workspace.id}
-                              onClick={() => handleWorkspaceClick(workspace)}
-                              style={{
-                                cursor: "pointer",
-                                backgroundColor: isSelected
-                                  ? palette.accentSoft
-                                  : "transparent",
-                                fontWeight: isSelected ? 600 : "normal",
-                              }}
-                            >
-                              <Table.Td>
-                                <Text fw={isSelected ? 600 : "normal"}>
-                                  {workspace.tenant.name}
-                                </Text>
-                              </Table.Td>
-                              <Table.Td>
-                                <Text fw={isSelected ? 600 : "normal"}>
-                                  {workspace.name}
-                                </Text>
-                              </Table.Td>
-                              <Table.Td style={{ textAlign: "center" }}>
-                                <Badge
-                                  color="yellow"
-                                  variant="filled"
-                                  radius="xl"
-                                >
-                                  {workspace._count.nodes}
-                                </Badge>
-                              </Table.Td>
-                              <Table.Td>
-                                {new Date(
-                                  workspace.createdAt
-                                ).toLocaleString()}
-                              </Table.Td>
-                            </Table.Tr>
-                          );
-                        })}
-                      </Table.Tbody>
-                    </Table>
-                  )}
-                </Stack>
-              </Paper>
-            )}
-
-            {/* Nodes card */}
-            {activeNav === "nodes" && (
-              <Paper
-                shadow="sm"
-                p="md"
-                radius="md"
-                style={{
-                  backgroundColor: palette.surface,
-                  border: `1px solid ${palette.border}`,
-                }}
-              >
-                <Stack gap="xs">
-                  <Group justify="space-between" align="center">
-                    <Text fw={600} size="lg">
-                      {selectedWorkspace
-                        ? `Nodes for ${selectedWorkspace.name}`
-                        : "Nodes"}
-                    </Text>
-                  </Group>
-
-                  {!selectedWorkspace && (
-                    <Text size="sm" c={palette.textSoft}>
-                      Select a workspace above to see its nodes.
-                    </Text>
-                  )}
-
-                  {selectedWorkspace && nodesLoading && (
-                    <Group gap="xs">
-                      <Loader size="sm" />
-                      <Text size="sm">Loading nodes…</Text>
-                    </Group>
-                  )}
-
-                  {selectedWorkspace && nodesError && (
-                    <Text size="sm" c="red.3">
-                      {nodesError}
-                    </Text>
-                  )}
-
-                  {selectedWorkspace &&
-                    !nodesLoading &&
-                    !nodesError &&
-                    nodes.length === 0 && (
-                      <Text size="sm" c={palette.textSoft}>
-                        This workspace has no nodes yet.
-                      </Text>
-                    )}
-
-                  {selectedWorkspace &&
-                    !nodesLoading &&
-                    !nodesError &&
-                    nodes.length > 0 && (
-                      <Table
-                        highlightOnHover
-                        verticalSpacing="xs"
-                        horizontalSpacing="md"
-                        withTableBorder
-                        withColumnBorders
-                        styles={{
-                          table: {
-                            backgroundColor: "transparent",
-                          },
-                          th: {
-                            backgroundColor: palette.header,
-                            color: palette.textSoft,
-                            borderColor: palette.border,
-                          },
-                          td: {
-                            borderColor: palette.border,
-                            color: palette.text,
-                          },
-                        }}
-                      >
-                        <Table.Thead>
-                          <Table.Tr>
-                            <Table.Th>Node</Table.Th>
-                            <Table.Th>Programs</Table.Th>
-                            <Table.Th>Modules</Table.Th>
-                            <Table.Th>Documents</Table.Th>
-                            <Table.Th>Integrations</Table.Th>
-                            <Table.Th>Created</Table.Th>
-                          </Table.Tr>
-                        </Table.Thead>
-                        <Table.Tbody>
-                          {nodes.map((node) => (
-                            <Table.Tr key={node.id}>
-                              <Table.Td>{node.name}</Table.Td>
-                              <Table.Td>{node._count.programs}</Table.Td>
-                              <Table.Td>{node._count.modules}</Table.Td>
-                              <Table.Td>{node._count.documents}</Table.Td>
-                              <Table.Td>{node._count.integrations}</Table.Td>
-                              <Table.Td>
-                                {new Date(node.createdAt).toLocaleString()}
-                              </Table.Td>
-                            </Table.Tr>
-                          ))}
-                        </Table.Tbody>
-                      </Table>
-                    )}
-                </Stack>
-              </Paper>
-            )}
-
-            {/* Settings card */}
-            {activeNav === "settings" && (
-              <Paper
-                shadow="sm"
-                p="md"
-                radius="md"
-                style={{
-                  backgroundColor: palette.surface,
-                  border: `1px solid ${palette.border}`,
-                }}
-              >
-                <Stack gap="xs">
-                  <Text fw={600} size="lg">
-                    Settings
-                  </Text>
-                  <Text size="sm" c={palette.textSoft}>
-                    Continuum options and configuration
-                  </Text>
-                  <Text size="sm" c={palette.textSoft} mt="md">
-                    Settings panel coming soon.
-                  </Text>
-                </Stack>
-              </Paper>
-            )}
+                  <OverviewPage
+                    workspacesCount={workspaces.length}
+                    selectedWorkspaceName={selectedWorkspace?.name}
+                    nodesCount={nodes.length > 0 ? nodes.length : undefined}
+                    palette={palette}
+                  />
                 </Stack>
               </Container>
+            }
+          />
+          <Route
+            path="/workspaces"
+            element={
+              <Container size="xl" py="lg">
+                <Stack gap="md">
+                  <Paper
+                    shadow="sm"
+                    p="md"
+                    radius="md"
+                    style={{
+                      backgroundColor: palette.surface,
+                      border: `1px solid ${palette.border}`,
+                    }}
+                  >
+                    <Stack gap="xs">
+                      <Text size="sm" c={palette.textSoft}>
+                        This is the first Continuum Surface. Select a palette, click a
+                        workspace, and Continuum will fetch its nodes from Continuum
+                        Core.
+                      </Text>
+                      <Text size="xs" c={palette.textSoft}>
+                        API Base: {API_BASE}
+                      </Text>
+                    </Stack>
+                  </Paper>
+                  <WorkspacesPage
+                    workspaces={workspaces}
+                    workspacesLoading={workspacesLoading}
+                    workspacesError={workspacesError}
+                    selectedWorkspace={selectedWorkspace}
+                    nodes={nodes}
+                    nodesLoading={nodesLoading}
+                    nodesError={nodesError}
+                    onWorkspaceClick={handleWorkspaceClick}
+                    palette={palette}
+                    TERMS={TERMS}
+                    API_BASE={API_BASE}
+                  />
+                </Stack>
+              </Container>
+            }
+          />
+          <Route
+            path="/nodes"
+            element={
+              <Container size="xl" py="lg">
+                <NodesPage
+                  workspaces={workspaces}
+                  palette={palette}
+                  API_BASE={API_BASE}
+                />
+              </Container>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <Container size="xl" py="lg">
+                <SettingsPage palette={palette} />
+              </Container>
+            }
+          />
+          <Route
+            path="/glossary"
+            element={
+              <div
+                style={{
+                  backgroundColor: palette.background,
+                  minHeight: "100vh",
+                }}
+              >
+                <GlossaryPage />
+              </div>
             }
           />
         </Routes>
