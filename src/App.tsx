@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import {
   AppShell,
   Badge,
-  Button,
   Container,
   Group,
   Loader,
@@ -14,13 +13,47 @@ import {
   Text,
 } from "@mantine/core";
 import {
+  IconChevronUp,
+  IconChevronDown,
   IconLayoutDashboard,
-  IconStack2,
-  IconFileText,
-  IconStack3,
-  IconPlug,
+  IconBox,
   IconSettings,
 } from "@tabler/icons-react";
+
+// ---------- Types ----------
+
+type Workspace = {
+  id: string;
+  tenantId: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  tenant: {
+    id: string;
+    name: string;
+  };
+  _count: {
+    nodes: number;
+  };
+};
+
+type Node = {
+  id: string;
+  name: string;
+  workspaceId: string;
+  createdAt: string;
+  updatedAt: string;
+  workspace: {
+    id: string;
+    name: string;
+  };
+  _count: {
+    programs: number;
+    modules: number;
+    documents: number;
+    integrations: number;
+  };
+};
 
 // ---------- Palettes ----------
 
@@ -101,278 +134,133 @@ const PALETTES: Record<PaletteKey, PaletteDef> = {
   },
 };
 
-const PALETTE_OPTIONS: { value: PaletteKey; label: string }[] =
-  Object.keys(PALETTES).map((key) => ({
-    value: key as PaletteKey,
-    label: key,
-  }));
+const PALETTE_OPTIONS: { value: PaletteKey; label: string }[] = Object.keys(
+  PALETTES
+).map((key) => ({
+  value: key as PaletteKey,
+  label: key,
+}));
 
 const API_BASE = "http://localhost:8080";
 
-// ---------- Types ----------
-
-type Workspace = {
-  id: string;
-  tenantId: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-  tenant: {
-    id: string;
-    name: string;
-  };
-  _count: {
-    nodes: number;
-  };
-};
-
-type Node = {
-  id: string;
-  name: string;
-  workspaceId: string;
-  createdAt: string;
-  updatedAt: string;
-  workspace: {
-    id: string;
-    name: string;
-  };
-  _count: {
-    programs: number;
-    modules: number;
-    documents: number;
-    integrations: number;
-  };
-};
-
 // ---------- Main Component ----------
 
-export default function App() {
-  const [paletteKey, setPaletteKey] = useState<PaletteKey>("Regal Navy & Gold");
+const App: React.FC = () => {
+  const [paletteKey, setPaletteKey] =
+    useState<PaletteKey>("Regal Navy & Gold");
   const palette = PALETTES[paletteKey];
 
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [nodes, setNodes] = useState<Node[]>([]);
+  const [workspacesLoading, setWorkspacesLoading] = useState(false);
+  const [workspacesError, setWorkspacesError] = useState<string | null>(null);
+
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(
     null
   );
-  const [workspacesLoading, setWorkspacesLoading] = useState(false);
+  const [nodes, setNodes] = useState<Node[]>([]);
   const [nodesLoading, setNodesLoading] = useState(false);
+  const [nodesError, setNodesError] = useState<string | null>(null);
 
+  type NavKey = "overview" | "workspaces" | "nodes" | "settings";
+  const [activeNav, setActiveNav] = useState<NavKey>("workspaces");
+
+  // Fetch workspaces on mount
   useEffect(() => {
-    setWorkspacesLoading(true);
-    fetch(`${API_BASE}/api/workspaces`)
-      .then((r) => r.json())
-      .then((data) => {
-        console.log("Loaded workspaces:", data);
+    const fetchWorkspaces = async () => {
+      try {
+        setWorkspacesLoading(true);
+        setWorkspacesError(null);
+
+        const res = await fetch(`${API_BASE}/api/workspaces`);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const data = (await res.json()) as Workspace[];
         setWorkspaces(data);
+      } catch (err: any) {
+        console.error("Error loading workspaces", err);
+        setWorkspacesError(err?.message ?? "Failed to load workspaces");
+      } finally {
         setWorkspacesLoading(false);
-      })
-      .catch((err) => {
-        console.error("Workspace error:", err);
-        setWorkspacesLoading(false);
-      });
+      }
+    };
+
+    fetchWorkspaces();
   }, []);
 
-  const loadNodes = (ws: Workspace) => {
-    console.log("Clicked workspace:", ws.id);
-    setSelectedWorkspace(ws);
-    setNodesLoading(true);
+  const handleWorkspaceClick = async (workspace: Workspace) => {
+    console.log("Clicked workspace", workspace.id, workspace.name);
+    setSelectedWorkspace(workspace);
     setNodes([]);
+    setNodesError(null);
+    setNodesLoading(true);
+    setActiveNav("nodes");
 
-    fetch(`${API_BASE}/api/nodes?workspaceId=${ws.id}`)
-      .then((r) => r.json())
-      .then((data) => {
-        console.log("Loaded nodes:", data);
-        setNodes(data);
-        setNodesLoading(false);
-      })
-      .catch((err) => {
-        console.error("Node error:", err);
-        setNodesLoading(false);
-      });
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/nodes?workspaceId=${encodeURIComponent(
+          workspace.id
+        )}`
+      );
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      const data = (await res.json()) as Node[];
+      setNodes(data);
+    } catch (err: any) {
+      console.error("Error loading nodes", err);
+      setNodesError(err?.message ?? "Failed to load nodes");
+    } finally {
+      setNodesLoading(false);
+    }
   };
 
   return (
     <AppShell
-      padding={0}
+      padding="md"
+      header={{ height: 70 }}
       navbar={{
-        width: 256,
+        width: 260,
         breakpoint: "sm",
       }}
       styles={{
         main: {
-          backgroundColor: "#f1f5f9",
+          backgroundColor: palette.background,
+          color: palette.text,
           minHeight: "100vh",
         },
       }}
     >
-      {/* Sidebar */}
-      <AppShell.Navbar
-        p="md"
-        style={{
-          backgroundColor: "#ffffff",
-          borderRight: "1px solid #e2e8f0",
-        }}
-      >
-        <Stack gap="xl">
-          {/* Logo Section */}
-          <Group gap="xs">
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 12,
-                backgroundColor: palette.header,
-                color: palette.text,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 14,
-                fontWeight: 700,
-              }}
-            >
-              NC
-            </div>
-            <Stack gap={0}>
-              <Text size="sm" fw={600} c="#0f172a">
-                Nucleus Continuum
-              </Text>
-              <Button
-                variant="subtle"
-                size="xs"
-                p={0}
-                h="auto"
-                style={{ justifyContent: "flex-start" }}
-              >
-                <Text size="xs" c="#64748b">
-                  Current Tenant
-                </Text>
-              </Button>
-            </Stack>
-          </Group>
-
-          {/* Navigation Section */}
-          <div>
-            <Text
-              size="xs"
-              fw={600}
-              tt="uppercase"
-              c="#64748b"
-              mb="xs"
-              style={{ letterSpacing: "0.05em" }}
-            >
-              Navigation
-            </Text>
-            <Stack gap={4}>
-              <NavLink
-                label="Home"
-                leftSection={<IconLayoutDashboard size={16} />}
-                variant="subtle"
-              />
-              <NavLink
-                label="Workspaces"
-                leftSection={<IconStack2 size={16} />}
-                active
-                variant="filled"
-                style={{
-                  backgroundColor: palette.header,
-                  color: palette.text,
-                }}
-              />
-              <NavLink
-                label="Programs"
-                leftSection={<IconStack3 size={16} />}
-                variant="subtle"
-              />
-              <NavLink
-                label="Knowledge"
-                leftSection={<IconFileText size={16} />}
-                variant="subtle"
-              />
-              <NavLink
-                label="Modules"
-                leftSection={<IconPlug size={16} />}
-                variant="subtle"
-              />
-              <NavLink
-                label="Integrations"
-                leftSection={<IconSettings size={16} />}
-                variant="subtle"
-              />
-              <NavLink
-                label="Settings"
-                leftSection={<IconSettings size={16} />}
-                variant="subtle"
-              />
-            </Stack>
-          </div>
-
-          {/* Shortcuts Section */}
-          <div>
-            <Text
-              size="xs"
-              fw={600}
-              tt="uppercase"
-              c="#64748b"
-              mb="xs"
-              style={{ letterSpacing: "0.05em" }}
-            >
-              Shortcuts
-            </Text>
-            <Stack gap={4}>
-              {workspaces.slice(0, 2).map((ws) => (
-                <Button
-                  key={ws.id}
-                  variant="subtle"
-                  justify="flex-start"
-                  fullWidth
-                  p="xs"
-                  h="auto"
-                  style={{
-                    color: "#334155",
-                    fontSize: 12,
-                  }}
-                >
-                  <Group gap="xs" w="100%">
-                    <div
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: "50%",
-                        backgroundColor: palette.accent,
-                      }}
-                    />
-                    <Text size="xs" truncate>
-                      {ws.name}
-                    </Text>
-                  </Group>
-                </Button>
-              ))}
-            </Stack>
-          </div>
-        </Stack>
-      </AppShell.Navbar>
-
       {/* Header */}
       <AppShell.Header
-        p="md"
         style={{
-          backgroundColor: "#ffffff",
-          borderBottom: "1px solid #e2e8f0",
+          backgroundColor: palette.header,
+          borderBottom: `1px solid ${palette.border}`,
         }}
       >
         <Container size="xl" style={{ height: "100%" }}>
-          <Group justify="space-between" align="center" style={{ height: "100%" }}>
-            <Stack gap={0}>
-              <Text fw={600} size="lg" c="#0f172a">
-                Continuum
-              </Text>
-              <Text size="xs" c="#64748b">
-                Workspace Browser
-              </Text>
-            </Stack>
+          <Group
+            justify="space-between"
+            align="center"
+            style={{ height: "100%" }}
+          >
             <Group gap="xs" align="center">
-              <Text size="sm" c="#64748b">
+              <Group gap={4}>
+                <IconChevronUp size={22} color={palette.accentSoft} />
+                <IconChevronDown size={22} color={palette.accentSoft} />
+              </Group>
+              <Stack gap={0}>
+                <Text fw={700} size="xl" c={palette.text}>
+                  Continuum
+                </Text>
+                <Text size="sm" c={palette.textSoft}>
+                  Workspace Browser
+                </Text>
+              </Stack>
+            </Group>
+
+            <Group gap="xs" align="center">
+              <Text size="sm" c={palette.textSoft}>
                 Palette
               </Text>
               <Select
@@ -389,6 +277,9 @@ export default function App() {
                     borderColor: palette.border,
                     color: palette.text,
                   },
+                  dropdown: {
+                    backgroundColor: palette.surface,
+                  },
                 }}
               />
             </Group>
@@ -396,207 +287,455 @@ export default function App() {
         </Container>
       </AppShell.Header>
 
-      {/* Main Content */}
+      {/* Sidebar nav */}
+      <AppShell.Navbar
+        p="md"
+        style={{
+          backgroundColor: "#020617",
+          borderRight: `1px solid ${palette.border}`,
+        }}
+      >
+        <Stack gap="xs">
+          <Text
+            size="xs"
+            fw={600}
+            style={{ letterSpacing: 1, textTransform: "uppercase" }}
+            c={palette.textSoft}
+          >
+            Navigation
+          </Text>
+
+          <NavLink
+            label="Overview"
+            description="Continuum at a glance"
+            leftSection={
+              <IconLayoutDashboard size={18} color={palette.textSoft} />
+            }
+            active={activeNav === "overview"}
+            onClick={() => setActiveNav("overview")}
+            styles={{
+              root: {
+                borderRadius: 8,
+                backgroundColor:
+                  activeNav === "overview" ? palette.surface : "transparent",
+              },
+              label: { color: palette.text },
+              description: { color: palette.textSoft },
+            }}
+          />
+
+          <NavLink
+            label="Workspaces"
+            description="Tenants and surfaces"
+            leftSection={<IconBox size={18} color={palette.textSoft} />}
+            active={activeNav === "workspaces"}
+            onClick={() => setActiveNav("workspaces")}
+            styles={{
+              root: {
+                borderRadius: 8,
+                backgroundColor:
+                  activeNav === "workspaces"
+                    ? palette.surface
+                    : "transparent",
+              },
+              label: { color: palette.text },
+              description: { color: palette.textSoft },
+            }}
+          />
+
+          <NavLink
+            label="Nodes"
+            description="Active cores"
+            leftSection={<IconBox size={18} color={palette.textSoft} />}
+            active={activeNav === "nodes"}
+            onClick={() => setActiveNav("nodes")}
+            styles={{
+              root: {
+                borderRadius: 8,
+                backgroundColor:
+                  activeNav === "nodes" ? palette.surface : "transparent",
+              },
+              label: { color: palette.text },
+              description: { color: palette.textSoft },
+            }}
+          />
+
+          <NavLink
+            label="Settings"
+            description="Continuum options"
+            leftSection={<IconSettings size={18} color={palette.textSoft} />}
+            active={activeNav === "settings"}
+            onClick={() => setActiveNav("settings")}
+            styles={{
+              root: {
+                borderRadius: 8,
+                backgroundColor:
+                  activeNav === "settings"
+                    ? palette.surface
+                    : "transparent",
+              },
+              label: { color: palette.text },
+              description: { color: palette.textSoft },
+            }}
+          />
+        </Stack>
+      </AppShell.Navbar>
+
+      {/* Main content */}
       <AppShell.Main>
         <Container size="xl" py="lg">
-          <Stack gap="lg">
+          <Stack gap="md">
             {/* Banner */}
             <Paper
               shadow="sm"
               p="md"
               radius="md"
               style={{
-                backgroundColor: "#ffffff",
-                border: "1px solid #e2e8f0",
+                backgroundColor: palette.surface,
+                border: `1px solid ${palette.border}`,
               }}
             >
-              <Text size="sm" c="#475569">
-                This is the first Continuum Surface. Select a palette, then browse
-                Tenants, Workspaces, and Nodes coming from Continuum Core.
+              <Text size="sm" c={palette.textSoft}>
+                This is the first Continuum Surface. Select a palette, click a
+                workspace, and Continuum will fetch its nodes from Continuum
+                Core.
               </Text>
             </Paper>
 
-            {/* Workspaces Card */}
-            <Paper
-              shadow="sm"
-              p="md"
-              radius="md"
-              style={{
-                backgroundColor: "#ffffff",
-                border: "1px solid #e2e8f0",
-              }}
-            >
-              <Stack gap="md">
-                <Stack gap={4}>
-                  <Text fw={600} size="lg" c="#0f172a">
-                    Workspaces
+            {/* Overview card */}
+            {activeNav === "overview" && (
+              <Paper
+                shadow="sm"
+                p="md"
+                radius="md"
+                style={{
+                  backgroundColor: palette.surface,
+                  border: `1px solid ${palette.border}`,
+                }}
+              >
+                <Stack gap="xs">
+                  <Text fw={600} size="lg">
+                    Overview
                   </Text>
-                  <Text size="xs" c="#64748b">
+                  <Text size="sm" c={palette.textSoft}>
+                    Continuum at a glance
+                  </Text>
+                  <Group gap="md" mt="md">
+                    <Paper
+                      p="md"
+                      radius="md"
+                      style={{
+                        backgroundColor: palette.header,
+                        border: `1px solid ${palette.border}`,
+                      }}
+                    >
+                      <Stack gap={4}>
+                        <Text size="xs" c={palette.textSoft}>
+                          Total Workspaces
+                        </Text>
+                        <Text fw={700} size="xl" c={palette.text}>
+                          {workspaces.length}
+                        </Text>
+                      </Stack>
+                    </Paper>
+                    {selectedWorkspace && (
+                      <Paper
+                        p="md"
+                        radius="md"
+                        style={{
+                          backgroundColor: palette.header,
+                          border: `1px solid ${palette.border}`,
+                        }}
+                      >
+                        <Stack gap={4}>
+                          <Text size="xs" c={palette.textSoft}>
+                            Selected Workspace
+                          </Text>
+                          <Text fw={700} size="xl" c={palette.text}>
+                            {selectedWorkspace.name}
+                          </Text>
+                        </Stack>
+                      </Paper>
+                    )}
+                    {selectedWorkspace && nodes.length > 0 && (
+                      <Paper
+                        p="md"
+                        radius="md"
+                        style={{
+                          backgroundColor: palette.header,
+                          border: `1px solid ${palette.border}`,
+                        }}
+                      >
+                        <Stack gap={4}>
+                          <Text size="xs" c={palette.textSoft}>
+                            Nodes Loaded
+                          </Text>
+                          <Text fw={700} size="xl" c={palette.text}>
+                            {nodes.length}
+                          </Text>
+                        </Stack>
+                      </Paper>
+                    )}
+                  </Group>
+                </Stack>
+              </Paper>
+            )}
+
+            {/* Workspaces card */}
+            {activeNav === "workspaces" && (
+              <Paper
+                shadow="sm"
+                p="md"
+                radius="md"
+                style={{
+                  backgroundColor: palette.surface,
+                  border: `1px solid ${palette.border}`,
+                }}
+              >
+                <Stack gap="xs">
+                  <Group justify="space-between" align="center">
+                    <Text fw={600} size="lg">
+                      Workspaces
+                    </Text>
+                    {selectedWorkspace && (
+                      <Badge color="yellow" variant="light">
+                        {selectedWorkspace.tenant.name} /{" "}
+                        {selectedWorkspace.name}
+                      </Badge>
+                    )}
+                  </Group>
+
+                  <Text size="xs" c={palette.textSoft}>
                     Fetched from Continuum Core at {API_BASE}
                   </Text>
-                </Stack>
 
-                {workspacesLoading && (
-                  <Group gap="xs">
-                    <Loader size="sm" />
-                    <Text size="sm" c="#475569">
-                      Loading workspaces...
+                  {workspacesLoading && (
+                    <Group gap="xs">
+                      <Loader size="sm" />
+                      <Text size="sm">Loading workspaces…</Text>
+                    </Group>
+                  )}
+
+                  {workspacesError && (
+                    <Text size="sm" c="red.3">
+                      {workspacesError}
                     </Text>
-                  </Group>
-                )}
+                  )}
 
-                {!workspacesLoading && (
-                  <Table
-                    highlightOnHover
-                    styles={{
-                      thead: {
-                        backgroundColor: "#f8fafc",
-                      },
-                      th: {
-                        color: "#64748b",
-                        fontSize: 11,
-                        fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                      },
-                      td: {
-                        color: "#334155",
-                        fontSize: 12,
-                      },
-                    }}
-                  >
-                    <Table.Thead>
-                      <Table.Tr>
-                        <Table.Th>Tenant</Table.Th>
-                        <Table.Th>Workspace</Table.Th>
-                        <Table.Th>Nodes</Table.Th>
-                        <Table.Th>Created</Table.Th>
-                      </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                      {workspaces.map((ws) => {
-                        const isSelected = selectedWorkspace?.id === ws.id;
-                        return (
-                          <Table.Tr
-                            key={ws.id}
-                            style={{
-                              backgroundColor: isSelected
-                                ? palette.accentSoft
-                                : "transparent",
-                              cursor: "pointer",
-                            }}
-                            onClick={() => loadNodes(ws)}
-                          >
-                            <Table.Td>{ws.tenant.name}</Table.Td>
-                            <Table.Td fw={isSelected ? 600 : 400}>
-                              {ws.name}
-                            </Table.Td>
-                            <Table.Td>
-                              <Badge variant="filled" color="blue" size="sm">
-                                {ws._count.nodes}
-                              </Badge>
-                            </Table.Td>
-                            <Table.Td>
-                              {new Date(ws.createdAt).toLocaleString()}
-                            </Table.Td>
-                          </Table.Tr>
-                        );
-                      })}
-                    </Table.Tbody>
-                  </Table>
-                )}
-              </Stack>
-            </Paper>
-
-            {/* Nodes Card */}
-            <Paper
-              shadow="sm"
-              p="md"
-              radius="md"
-              style={{
-                backgroundColor: "#ffffff",
-                border: "1px solid #e2e8f0",
-              }}
-            >
-              <Stack gap="md">
-                <Text fw={600} size="lg" c="#0f172a">
-                  {selectedWorkspace
-                    ? `Nodes for ${selectedWorkspace.name}`
-                    : "Nodes"}
-                </Text>
-
-                {!selectedWorkspace && (
-                  <Text size="sm" c="#64748b">
-                    Select a workspace above to see its nodes.
-                  </Text>
-                )}
-
-                {selectedWorkspace && nodesLoading && (
-                  <Group gap="xs">
-                    <Loader size="sm" />
-                    <Text size="sm" c="#475569">
-                      Loading nodes...
-                    </Text>
-                  </Group>
-                )}
-
-                {selectedWorkspace && !nodesLoading && nodes.length === 0 && (
-                  <Text size="sm" c="#64748b">
-                    No nodes found.
-                  </Text>
-                )}
-
-                {selectedWorkspace && !nodesLoading && nodes.length > 0 && (
-                  <Table
-                    highlightOnHover
-                    styles={{
-                      thead: {
-                        backgroundColor: "#f8fafc",
-                      },
-                      th: {
-                        color: "#64748b",
-                        fontSize: 11,
-                        fontWeight: 600,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                      },
-                      td: {
-                        color: "#334155",
-                        fontSize: 12,
-                      },
-                    }}
-                  >
-                    <Table.Thead>
-                      <Table.Tr>
-                        <Table.Th>Node</Table.Th>
-                        <Table.Th>Programs</Table.Th>
-                        <Table.Th>Modules</Table.Th>
-                        <Table.Th>Documents</Table.Th>
-                        <Table.Th>Integrations</Table.Th>
-                        <Table.Th>Created</Table.Th>
-                      </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                      {nodes.map((n) => (
-                        <Table.Tr key={n.id}>
-                          <Table.Td>{n.name}</Table.Td>
-                          <Table.Td>{n._count.programs}</Table.Td>
-                          <Table.Td>{n._count.modules}</Table.Td>
-                          <Table.Td>{n._count.documents}</Table.Td>
-                          <Table.Td>{n._count.integrations}</Table.Td>
-                          <Table.Td>
-                            {new Date(n.createdAt).toLocaleString()}
-                          </Table.Td>
+                  {!workspacesLoading && !workspacesError && (
+                    <Table
+                      highlightOnHover
+                      verticalSpacing="xs"
+                      horizontalSpacing="md"
+                      withTableBorder
+                      withColumnBorders
+                      styles={{
+                        table: {
+                          backgroundColor: "transparent",
+                        },
+                        th: {
+                          backgroundColor: palette.header,
+                          color: palette.textSoft,
+                          borderColor: palette.border,
+                        },
+                        td: {
+                          borderColor: palette.border,
+                          color: palette.text,
+                        },
+                      }}
+                    >
+                      <Table.Thead>
+                        <Table.Tr>
+                          <Table.Th>Tenant</Table.Th>
+                          <Table.Th>Workspace</Table.Th>
+                          <Table.Th style={{ textAlign: "center" }}>
+                            Nodes
+                          </Table.Th>
+                          <Table.Th>Created</Table.Th>
                         </Table.Tr>
-                      ))}
-                    </Table.Tbody>
-                  </Table>
-                )}
-              </Stack>
-            </Paper>
+                      </Table.Thead>
+                      <Table.Tbody>
+                        {workspaces.map((workspace) => {
+                          const isSelected =
+                            selectedWorkspace?.id === workspace.id;
+                          return (
+                            <Table.Tr
+                              key={workspace.id}
+                              onClick={() => handleWorkspaceClick(workspace)}
+                              style={{
+                                cursor: "pointer",
+                                backgroundColor: isSelected
+                                  ? palette.accentSoft
+                                  : "transparent",
+                                fontWeight: isSelected ? 600 : "normal",
+                              }}
+                            >
+                              <Table.Td>
+                                <Text fw={isSelected ? 600 : "normal"}>
+                                  {workspace.tenant.name}
+                                </Text>
+                              </Table.Td>
+                              <Table.Td>
+                                <Text fw={isSelected ? 600 : "normal"}>
+                                  {workspace.name}
+                                </Text>
+                              </Table.Td>
+                              <Table.Td style={{ textAlign: "center" }}>
+                                <Badge
+                                  color="yellow"
+                                  variant="filled"
+                                  radius="xl"
+                                >
+                                  {workspace._count.nodes}
+                                </Badge>
+                              </Table.Td>
+                              <Table.Td>
+                                {new Date(
+                                  workspace.createdAt
+                                ).toLocaleString()}
+                              </Table.Td>
+                            </Table.Tr>
+                          );
+                        })}
+                      </Table.Tbody>
+                    </Table>
+                  )}
+                </Stack>
+              </Paper>
+            )}
+
+            {/* Nodes card */}
+            {activeNav === "nodes" && (
+              <Paper
+                shadow="sm"
+                p="md"
+                radius="md"
+                style={{
+                  backgroundColor: palette.surface,
+                  border: `1px solid ${palette.border}`,
+                }}
+              >
+                <Stack gap="xs">
+                  <Group justify="space-between" align="center">
+                    <Text fw={600} size="lg">
+                      {selectedWorkspace
+                        ? `Nodes for ${selectedWorkspace.name}`
+                        : "Nodes"}
+                    </Text>
+                  </Group>
+
+                  {!selectedWorkspace && (
+                    <Text size="sm" c={palette.textSoft}>
+                      Select a workspace above to see its nodes.
+                    </Text>
+                  )}
+
+                  {selectedWorkspace && nodesLoading && (
+                    <Group gap="xs">
+                      <Loader size="sm" />
+                      <Text size="sm">Loading nodes…</Text>
+                    </Group>
+                  )}
+
+                  {selectedWorkspace && nodesError && (
+                    <Text size="sm" c="red.3">
+                      {nodesError}
+                    </Text>
+                  )}
+
+                  {selectedWorkspace &&
+                    !nodesLoading &&
+                    !nodesError &&
+                    nodes.length === 0 && (
+                      <Text size="sm" c={palette.textSoft}>
+                        This workspace has no nodes yet.
+                      </Text>
+                    )}
+
+                  {selectedWorkspace &&
+                    !nodesLoading &&
+                    !nodesError &&
+                    nodes.length > 0 && (
+                      <Table
+                        highlightOnHover
+                        verticalSpacing="xs"
+                        horizontalSpacing="md"
+                        withTableBorder
+                        withColumnBorders
+                        styles={{
+                          table: {
+                            backgroundColor: "transparent",
+                          },
+                          th: {
+                            backgroundColor: palette.header,
+                            color: palette.textSoft,
+                            borderColor: palette.border,
+                          },
+                          td: {
+                            borderColor: palette.border,
+                            color: palette.text,
+                          },
+                        }}
+                      >
+                        <Table.Thead>
+                          <Table.Tr>
+                            <Table.Th>Node</Table.Th>
+                            <Table.Th>Programs</Table.Th>
+                            <Table.Th>Modules</Table.Th>
+                            <Table.Th>Documents</Table.Th>
+                            <Table.Th>Integrations</Table.Th>
+                            <Table.Th>Created</Table.Th>
+                          </Table.Tr>
+                        </Table.Thead>
+                        <Table.Tbody>
+                          {nodes.map((node) => (
+                            <Table.Tr key={node.id}>
+                              <Table.Td>{node.name}</Table.Td>
+                              <Table.Td>{node._count.programs}</Table.Td>
+                              <Table.Td>{node._count.modules}</Table.Td>
+                              <Table.Td>{node._count.documents}</Table.Td>
+                              <Table.Td>{node._count.integrations}</Table.Td>
+                              <Table.Td>
+                                {new Date(node.createdAt).toLocaleString()}
+                              </Table.Td>
+                            </Table.Tr>
+                          ))}
+                        </Table.Tbody>
+                      </Table>
+                    )}
+                </Stack>
+              </Paper>
+            )}
+
+            {/* Settings card */}
+            {activeNav === "settings" && (
+              <Paper
+                shadow="sm"
+                p="md"
+                radius="md"
+                style={{
+                  backgroundColor: palette.surface,
+                  border: `1px solid ${palette.border}`,
+                }}
+              >
+                <Stack gap="xs">
+                  <Text fw={600} size="lg">
+                    Settings
+                  </Text>
+                  <Text size="sm" c={palette.textSoft}>
+                    Continuum options and configuration
+                  </Text>
+                  <Text size="sm" c={palette.textSoft} mt="md">
+                    Settings panel coming soon.
+                  </Text>
+                </Stack>
+              </Paper>
+            )}
           </Stack>
         </Container>
       </AppShell.Main>
     </AppShell>
   );
-}
+};
+
+export default App;
