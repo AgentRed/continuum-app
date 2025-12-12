@@ -1,6 +1,13 @@
 import React from "react";
 import { Container, List, Paper, Stack, Table, Text, Divider } from "@mantine/core";
 
+// ---------- Vocabulary Map ----------
+
+const TERMS = {
+  tenant: "Owner",
+  tenants: "Owners",
+};
+
 const GLOSSARY_CONTENT = `Continuum Glossary (v1)
 
 What Continuum Is
@@ -358,16 +365,16 @@ export default function GlossaryPage() {
 
             <Divider />
 
-            {/* Multi-tenant note */}
+            {/* Multi-owner note */}
             <Stack gap="sm">
               <Text fw={700} size="lg" c="#0f172a">
-                Multi-tenant note (current phase)
+                Multi-owner note (current phase)
               </Text>
               <Text size="md" c="#334155" style={{ lineHeight: 1.7 }}>
-                Continuum is not multi-tenant right now. The data model may still use the word
-                "tenant" in places, but operationally there is one owner environment (the owner),
-                with optional collaborators. A future phase may introduce true multi-tenant
-                semantics, but v1 is single-owner, governed collaboration.
+                Continuum is a single-owner system with optional collaborators. The data model may
+                still use internal terminology in places, but operationally there is one owner
+                environment (the owner). A future phase may introduce multi-account support, but
+                v1 is single-owner, governed collaboration.
               </Text>
             </Stack>
 

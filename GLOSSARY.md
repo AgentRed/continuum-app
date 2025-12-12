@@ -96,3 +96,4 @@ Examples:
 
 ## Practical rule of thumb
 If a change affects meaning, boundaries, identity, or deletion, it is governed. If it is derived, reversible, and deterministic, it can be automatic.
+

@@ -147,6 +147,13 @@ const PALETTE_OPTIONS: { value: PaletteKey; label: string }[] = Object.keys(
 const API_BASE =
   import.meta.env.VITE_API_BASE || "http://localhost:8080";
 
+// ---------- Vocabulary Map ----------
+
+const TERMS = {
+  tenant: "Owner",
+  tenants: "Owners",
+};
+
 // ---------- Main Component ----------
 
 const App: React.FC = () => {
@@ -346,7 +353,7 @@ const App: React.FC = () => {
 
           <NavLink
             label="Workspaces"
-            description="Tenants and surfaces"
+            description={`${TERMS.tenants} and surfaces`}
             leftSection={<IconBox size={18} color={palette.textSoft} />}
             active={activeNav === "workspaces" && location.pathname === "/"}
             onClick={() => {
@@ -618,7 +625,7 @@ const App: React.FC = () => {
                     >
                       <Table.Thead>
                         <Table.Tr>
-                          <Table.Th>Tenant</Table.Th>
+                          <Table.Th>{TERMS.tenant}</Table.Th>
                           <Table.Th>Workspace</Table.Th>
                           <Table.Th style={{ textAlign: "center" }}>
                             Nodes

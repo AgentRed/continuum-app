@@ -208,7 +208,7 @@ function WorkspaceTable({ workspaces, colors, loading, error }) {
   const rows = workspaces.map((ws) => (
     <Table.Tr key={ws.id}>
       <Table.Td>
-        <Text fw={500}>{ws.tenant?.name ?? "Unknown tenant"}</Text>
+        <Text fw={500}>{ws.tenant?.name ?? "Unknown owner"}</Text>
       </Table.Td>
       <Table.Td>
         <Text>{ws.name}</Text>
@@ -257,7 +257,7 @@ function WorkspaceTable({ workspaces, colors, loading, error }) {
       >
         <Table.Thead>
           <Table.Tr>
-            <Table.Th>Tenant</Table.Th>
+            <Table.Th>Owner</Table.Th>
             <Table.Th>Workspace</Table.Th>
             <Table.Th>Nodes</Table.Th>
             <Table.Th>Created</Table.Th>
@@ -345,7 +345,7 @@ export default function App() {
             >
               <Text size="sm" c={colors.textMuted}>
                 This is the first Continuum Surface. Select a palette, then
-                browse Tenants, Workspaces, and Nodes coming from Continuum
+                browse Owners, Workspaces, and Nodes coming from Continuum
                 Core.
               </Text>
             </Paper>
