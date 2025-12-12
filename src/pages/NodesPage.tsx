@@ -45,12 +45,14 @@ type Node = {
 type NodesPageProps = {
   workspaces: Workspace[];
   palette: any;
+  TERMS: { tenant: string; tenants: string };
   API_BASE: string;
 };
 
 export default function NodesPage({
   workspaces,
   palette,
+  TERMS,
   API_BASE,
 }: NodesPageProps) {
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(
@@ -99,118 +101,147 @@ export default function NodesPage({
   ];
 
   return (
-    <Paper
-      shadow="sm"
-      p="md"
-      radius="md"
-      style={{
-        backgroundColor: palette.surface,
-        border: `1px solid ${palette.border}`,
-      }}
-    >
-      <Stack gap="md">
-        <Group justify="space-between" align="center">
-          <Text fw={600} size="lg">
-            Node Explorer
-          </Text>
-          <Select
-            placeholder="Filter by workspace"
-            value={selectedWorkspaceId || ""}
-            onChange={(value) => setSelectedWorkspaceId(value || null)}
-            data={workspaceOptions}
-            clearable
-            size="sm"
-            styles={{
-              input: {
-                backgroundColor: palette.header,
-                borderColor: palette.border,
-                color: palette.text,
-              },
-              dropdown: {
-                backgroundColor: palette.surface,
-              },
-            }}
-          />
-        </Group>
-
-        <Text size="sm" c={palette.textSoft}>
-          {selectedWorkspaceId
-            ? `Showing nodes for selected workspace`
-            : "Showing all nodes across all workspaces"}
-        </Text>
-
-        {nodesLoading && (
-          <Group gap="xs">
-            <Loader size="sm" />
-            <Text size="sm">Loading nodes…</Text>
-          </Group>
-        )}
-
-        {nodesError && (
-          <Text size="sm" c="red.3">
-            {nodesError}
-          </Text>
-        )}
-
-        {!nodesLoading && !nodesError && nodes.length === 0 && (
+    <Stack gap="md">
+      {/* Banner */}
+      <Paper
+        shadow="sm"
+        p="md"
+        radius="md"
+        style={{
+          backgroundColor: palette.surface,
+          border: `1px solid ${palette.border}`,
+        }}
+      >
+        <Stack gap="xs">
           <Text size="sm" c={palette.textSoft}>
-            {selectedWorkspaceId
-              ? "This workspace has no nodes yet."
-              : "No nodes found."}
+            This is the first Continuum Surface. Select a palette, click a
+            workspace, and Continuum will fetch its nodes from Continuum
+            Core.
           </Text>
-        )}
+          <Text size="xs" c={palette.textSoft}>
+            API Base: {API_BASE}
+          </Text>
+        </Stack>
+      </Paper>
 
-        {!nodesLoading && !nodesError && nodes.length > 0 && (
-          <Table
-            highlightOnHover
-            verticalSpacing="xs"
-            horizontalSpacing="md"
-            withTableBorder
-            withColumnBorders
-            styles={{
-              table: {
-                backgroundColor: "transparent",
-              },
-              th: {
-                backgroundColor: palette.header,
-                color: palette.textSoft,
-                borderColor: palette.border,
-              },
-              td: {
-                borderColor: palette.border,
-                color: palette.text,
-              },
-            }}
-          >
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Workspace</Table.Th>
-                <Table.Th>Node</Table.Th>
-                <Table.Th>Programs</Table.Th>
-                <Table.Th>Modules</Table.Th>
-                <Table.Th>Documents</Table.Th>
-                <Table.Th>Integrations</Table.Th>
-                <Table.Th>Created</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {nodes.map((node) => (
-                <Table.Tr key={node.id}>
-                  <Table.Td>{node.workspace.name}</Table.Td>
-                  <Table.Td>{node.name}</Table.Td>
-                  <Table.Td>{node._count.programs}</Table.Td>
-                  <Table.Td>{node._count.modules}</Table.Td>
-                  <Table.Td>{node._count.documents}</Table.Td>
-                  <Table.Td>{node._count.integrations}</Table.Td>
-                  <Table.Td>
-                    {new Date(node.createdAt).toLocaleString()}
-                  </Table.Td>
+      {/* Nodes card */}
+      <Paper
+        shadow="sm"
+        p="md"
+        radius="md"
+        style={{
+          backgroundColor: palette.surface,
+          border: `1px solid ${palette.border}`,
+        }}
+      >
+        <Stack gap="xs">
+          <Group justify="space-between" align="center">
+            <Text fw={600} size="lg">
+              Node Explorer
+            </Text>
+            <Select
+              placeholder="Filter by workspace"
+              value={selectedWorkspaceId || ""}
+              onChange={(value) => setSelectedWorkspaceId(value || null)}
+              data={workspaceOptions}
+              clearable
+              size="sm"
+              styles={{
+                input: {
+                  backgroundColor: palette.header,
+                  borderColor: palette.border,
+                  color: palette.text,
+                },
+                dropdown: {
+                  backgroundColor: palette.surface,
+                },
+              }}
+            />
+          </Group>
+
+          <Text size="xs" c={palette.textSoft}>
+            {selectedWorkspaceId
+              ? `Showing nodes for selected workspace`
+              : "Showing all nodes across all workspaces"}
+          </Text>
+
+          {nodesLoading && (
+            <Group gap="xs">
+              <Loader size="sm" />
+              <Text size="sm">Loading nodes…</Text>
+            </Group>
+          )}
+
+          {nodesError && (
+            <Text size="sm" c="red.3">
+              {nodesError}
+            </Text>
+          )}
+
+          {!nodesLoading && !nodesError && nodes.length === 0 && (
+            <Text size="sm" c={palette.textSoft}>
+              {selectedWorkspaceId
+                ? "This workspace has no nodes yet."
+                : "No nodes found."}
+            </Text>
+          )}
+
+          {!nodesLoading && !nodesError && nodes.length > 0 && (
+            <Table
+              highlightOnHover
+              verticalSpacing="xs"
+              horizontalSpacing="md"
+              withTableBorder
+              withColumnBorders
+              styles={{
+                table: {
+                  backgroundColor: "transparent",
+                },
+                th: {
+                  backgroundColor: palette.header,
+                  color: palette.textSoft,
+                  borderColor: palette.border,
+                },
+                td: {
+                  borderColor: palette.border,
+                  color: palette.text,
+                },
+              }}
+            >
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>Workspace</Table.Th>
+                  <Table.Th>Node</Table.Th>
+                  <Table.Th>Programs</Table.Th>
+                  <Table.Th>Modules</Table.Th>
+                  <Table.Th>Documents</Table.Th>
+                  <Table.Th>Integrations</Table.Th>
+                  <Table.Th>Created</Table.Th>
                 </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
-        )}
-      </Stack>
-    </Paper>
+              </Table.Thead>
+              <Table.Tbody>
+                {nodes.map((node) => (
+                  <Table.Tr key={node.id}>
+                    <Table.Td>
+                      <Text>{node.workspace.name}</Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text>{node.name}</Text>
+                    </Table.Td>
+                    <Table.Td>{node._count.programs}</Table.Td>
+                    <Table.Td>{node._count.modules}</Table.Td>
+                    <Table.Td>{node._count.documents}</Table.Td>
+                    <Table.Td>{node._count.integrations}</Table.Td>
+                    <Table.Td>
+                      {new Date(node.createdAt).toLocaleString()}
+                    </Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          )}
+        </Stack>
+      </Paper>
+    </Stack>
   );
 }

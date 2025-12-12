@@ -512,6 +512,7 @@ const App: React.FC = () => {
                 <NodesPage
                   workspaces={workspaces}
                   palette={palette}
+                  TERMS={TERMS}
                   API_BASE={API_BASE}
                 />
               </Container>
