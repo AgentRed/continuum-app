@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Group,
   Loader,
@@ -8,6 +9,7 @@ import {
   Table,
   Text,
 } from "@mantine/core";
+import { displayOwnerName } from "../App";
 
 type Workspace = {
   id: string;
@@ -49,12 +51,16 @@ type NodesPageProps = {
   API_BASE: string;
 };
 
+const STORAGE_KEY_NODE_ID = "continuum.selectedNodeId";
+const STORAGE_KEY_WORKSPACE_ID = "continuum.selectedWorkspaceId";
+
 export default function NodesPage({
   workspaces,
   palette,
   TERMS,
   API_BASE,
 }: NodesPageProps) {
+  const navigate = useNavigate();
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(
     null
   );
@@ -96,7 +102,7 @@ export default function NodesPage({
     { value: "", label: "All Workspaces" },
     ...workspaces.map((ws) => ({
       value: ws.id,
-      label: `${ws.tenant.name} / ${ws.name}`,
+      label: `${displayOwnerName(ws.tenant.name)} / ${ws.name}`,
     })),
   ];
 
@@ -113,12 +119,12 @@ export default function NodesPage({
         }}
       >
         <Stack gap="xs">
-          <Text size="sm" c={palette.textSoft}>
+          <Text size="sm" c="#ffffff">
             This is the first Continuum Surface. Select a palette, click a
             workspace, and Continuum will fetch its nodes from Continuum
             Core.
           </Text>
-          <Text size="xs" c={palette.textSoft}>
+          <Text size="xs" c="#ffffff">
             API Base: {API_BASE}
           </Text>
         </Stack>
@@ -136,7 +142,7 @@ export default function NodesPage({
       >
         <Stack gap="xs">
           <Group justify="space-between" align="center">
-            <Text fw={600} size="lg">
+            <Text fw={600} size="lg" c="#ffffff">
               Node Explorer
             </Text>
             <Select
@@ -150,16 +156,20 @@ export default function NodesPage({
                 input: {
                   backgroundColor: palette.header,
                   borderColor: palette.border,
-                  color: palette.text,
+                  color: "#ffffff",
                 },
                 dropdown: {
                   backgroundColor: palette.surface,
+                  color: "#ffffff",
+                },
+                option: {
+                  color: "#ffffff",
                 },
               }}
             />
           </Group>
 
-          <Text size="xs" c={palette.textSoft}>
+          <Text size="xs" c="#ffffff">
             {selectedWorkspaceId
               ? `Showing nodes for selected workspace`
               : "Showing all nodes across all workspaces"}
@@ -168,7 +178,7 @@ export default function NodesPage({
           {nodesLoading && (
             <Group gap="xs">
               <Loader size="sm" />
-              <Text size="sm">Loading nodes…</Text>
+              <Text size="sm" c="#ffffff">Loading nodes…</Text>
             </Group>
           )}
 
@@ -179,7 +189,7 @@ export default function NodesPage({
           )}
 
           {!nodesLoading && !nodesError && nodes.length === 0 && (
-            <Text size="sm" c={palette.textSoft}>
+            <Text size="sm" c="#ffffff">
               {selectedWorkspaceId
                 ? "This workspace has no nodes yet."
                 : "No nodes found."}
@@ -193,47 +203,119 @@ export default function NodesPage({
               horizontalSpacing="md"
               withTableBorder
               withColumnBorders
+              style={{ tableLayout: "fixed", width: "100%" }}
               styles={{
                 table: {
                   backgroundColor: "transparent",
+                  tableLayout: "fixed",
+                  width: "100%",
+                },
+                thead: {
+                  "& tr th": {
+                    borderRight: `1px solid ${palette.border}`,
+                    borderBottom: `1px solid ${palette.border}`,
+                  },
+                },
+                tbody: {
+                  "& tr td": {
+                    borderRight: `1px solid ${palette.border}`,
+                    borderBottom: `1px solid ${palette.border}`,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  },
+                  "& tr:hover": {
+                    backgroundColor: "rgba(59, 130, 246, 0.1) !important",
+                  },
                 },
                 th: {
                   backgroundColor: palette.header,
-                  color: palette.textSoft,
+                  color: "#ffffff",
                   borderColor: palette.border,
+                  fontWeight: 700,
+                  overflow: "hidden",
                 },
                 td: {
                   borderColor: palette.border,
-                  color: palette.text,
+                  color: "#ffffff",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
                 },
               }}
             >
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>Workspace</Table.Th>
-                  <Table.Th>Node</Table.Th>
-                  <Table.Th>Programs</Table.Th>
-                  <Table.Th>Modules</Table.Th>
-                  <Table.Th>Documents</Table.Th>
-                  <Table.Th>Integrations</Table.Th>
-                  <Table.Th>Created</Table.Th>
+                  <Table.Th style={{ width: "20%" }}>Workspace</Table.Th>
+                  <Table.Th style={{ width: "20%" }}>Node</Table.Th>
+                  <Table.Th style={{ textAlign: "center", width: "10%" }}>
+                    Programs
+                  </Table.Th>
+                  <Table.Th style={{ textAlign: "center", width: "10%" }}>
+                    Modules
+                  </Table.Th>
+                  <Table.Th style={{ textAlign: "center", width: "10%" }}>
+                    Documents
+                  </Table.Th>
+                  <Table.Th style={{ textAlign: "center", width: "10%" }}>
+                    Integrations
+                  </Table.Th>
+                  <Table.Th style={{ width: "20%", whiteSpace: "nowrap" }}>
+                    Created
+                  </Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
                 {nodes.map((node) => (
-                  <Table.Tr key={node.id}>
-                    <Table.Td>
-                      <Text>{node.workspace.name}</Text>
+                  <Table.Tr
+                    key={node.id}
+                    onClick={() => {
+                      // Save selectedNodeId to localStorage
+                      try {
+                        localStorage.setItem(STORAGE_KEY_NODE_ID, node.id);
+                        if (node.workspaceId) {
+                          localStorage.setItem(STORAGE_KEY_WORKSPACE_ID, node.workspaceId);
+                        }
+                      } catch (e) {
+                        console.error("Error saving node selection to localStorage:", e);
+                      }
+                      // Navigate to documents page
+                      navigate("/documents");
+                    }}
+                    style={{
+                      cursor: "pointer",
+                    }}
+                  >
+                    <Table.Td style={{ width: "20%" }}>
+                      <Text size="sm" lineClamp={1} c="#ffffff">
+                        {node.workspace.name}
+                      </Text>
                     </Table.Td>
-                    <Table.Td>
-                      <Text>{node.name}</Text>
+                    <Table.Td style={{ width: "20%" }}>
+                      <Text fw={500} size="sm" lineClamp={1} c="#ffffff">
+                        {node.name}
+                      </Text>
                     </Table.Td>
-                    <Table.Td>{node._count.programs}</Table.Td>
-                    <Table.Td>{node._count.modules}</Table.Td>
-                    <Table.Td>{node._count.documents}</Table.Td>
-                    <Table.Td>{node._count.integrations}</Table.Td>
-                    <Table.Td>
-                      {new Date(node.createdAt).toLocaleString()}
+                    <Table.Td style={{ textAlign: "center", width: "10%", color: "#ffffff" }}>
+                      {node._count.programs}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: "center", width: "10%", color: "#ffffff" }}>
+                      {node._count.modules}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: "center", width: "10%", color: "#ffffff" }}>
+                      {node._count.documents}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: "center", width: "10%", color: "#ffffff" }}>
+                      {node._count.integrations}
+                    </Table.Td>
+                    <Table.Td style={{ width: "20%" }}>
+                      <Text size="xs" lineClamp={1} c="#ffffff">
+                        {new Date(node.createdAt).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </Text>
                     </Table.Td>
                   </Table.Tr>
                 ))}
@@ -245,3 +327,10 @@ export default function NodesPage({
     </Stack>
   );
 }
+
+
+
+
+
+
+

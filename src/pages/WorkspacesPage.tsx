@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Alert,
   Badge,
@@ -14,6 +15,7 @@ import {
   TextInput,
 } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
+import { displayOwnerName } from "../App";
 
 type Workspace = {
   id: string;
@@ -79,6 +81,7 @@ export default function WorkspacesPage({
   TERMS,
   API_BASE,
 }: WorkspacesPageProps) {
+  const navigate = useNavigate();
   // Extract unique owners from workspaces
   const owners = Array.from(
     new Map(workspaces.map((ws) => [ws.tenant.id, ws.tenant])).values()
@@ -204,7 +207,7 @@ export default function WorkspacesPage({
             <Group gap="xs">
               {selectedWorkspace && (
                 <Badge color="yellow" variant="light">
-                  {selectedWorkspace.tenant.name} / {selectedWorkspace.name}
+                  {displayOwnerName(selectedWorkspace.tenant.name)} / {selectedWorkspace.name}
                 </Badge>
               )}
               <Button
@@ -287,7 +290,7 @@ export default function WorkspacesPage({
                     >
                       <Table.Td>
                         <Text fw={isSelected ? 600 : "normal"}>
-                          {workspace.tenant.name}
+                          {displayOwnerName(workspace.tenant.name)}
                         </Text>
                       </Table.Td>
                       <Table.Td>
@@ -401,8 +404,16 @@ export default function WorkspacesPage({
                 </Table.Thead>
                 <Table.Tbody>
                   {nodes.map((node) => (
-                    <Table.Tr key={node.id}>
-                      <Table.Td>{node.name}</Table.Td>
+                    <Table.Tr
+                      key={node.id}
+                      onClick={() => navigate(`/nodes/${node.id}`)}
+                      style={{
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Table.Td>
+                        <Text>{node.name}</Text>
+                      </Table.Td>
                       <Table.Td>{node._count.programs}</Table.Td>
                       <Table.Td>{node._count.modules}</Table.Td>
                       <Table.Td>{node._count.documents}</Table.Td>
@@ -463,7 +474,7 @@ export default function WorkspacesPage({
               onChange={(value) => setSelectedOwnerId(value)}
               data={owners.map((owner) => ({
                 value: owner.id,
-                label: owner.name,
+                label: displayOwnerName(owner.name),
               }))}
               required
               styles={{
@@ -621,3 +632,10 @@ export default function WorkspacesPage({
     </Stack>
   );
 }
+
+
+
+
+
+
+

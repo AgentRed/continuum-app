@@ -5,9 +5,45 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Continuum App</title>
+    <!-- Typography System -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Code+Pro:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Verify fonts are loading
+      if ('fonts' in document) {
+        // Explicitly load fonts with correct syntax
+        Promise.all([
+          document.fonts.load('600 16px "Playfair Display"'),
+          document.fonts.load('400 16px "Source Code Pro"')
+        ]).then(() => {
+          console.log('✅ Fonts explicitly loaded');
+        }).catch(err => {
+          console.error('❌ Error loading fonts:', err);
+        });
+        
+        document.fonts.ready.then(() => {
+          console.log('📝 Fonts ready. Checking availability:');
+          const playfair = document.fonts.check('600 16px "Playfair Display"');
+          const sourceCode = document.fonts.check('400 16px "Source Code Pro"');
+          
+          console.log('Playfair Display available:', playfair);
+          console.log('Source Code Pro available:', sourceCode);
+          
+          if (playfair && sourceCode) {
+            console.log('✅ All fonts loaded and available');
+          } else {
+            console.warn('⚠️ Some fonts may not be loaded. Check Network tab for Google Fonts requests.');
+          }
+        });
+      }
+    </script>
   </body>
 </html>

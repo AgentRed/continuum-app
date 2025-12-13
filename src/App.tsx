@@ -17,12 +17,19 @@ import {
   IconBox,
   IconSettings,
   IconBook,
+  IconFileText,
 } from "@tabler/icons-react";
 import GlossaryPage from "./pages/GlossaryPage";
 import OverviewPage from "./pages/OverviewPage";
 import WorkspacesPage from "./pages/WorkspacesPage";
 import NodesPage from "./pages/NodesPage";
+import NodeDetailPage from "./pages/NodeDetailPage";
 import SettingsPage from "./pages/SettingsPage";
+import DocumentsPage from "./pages/DocumentsPage";
+import EditorSpikePage from "./pages/EditorSpikePage";
+import PageFrame from "./layout/PageFrame";
+import ContentRoot from "./layout/ContentRoot";
+import { FontSizeProvider } from "./context/FontSizeContext";
 
 // ---------- Types ----------
 
@@ -155,6 +162,18 @@ const TERMS = {
   tenants: "Owners",
 };
 
+// ---------- Owner Name Display Helper ----------
+
+/**
+ * Transforms owner names for display.
+ * "Continuum Systems" -> "Continuum"
+ * All other names are returned as-is.
+ */
+export const displayOwnerName = (name: string | null | undefined): string => {
+  if (!name) return "—";
+  return name === "Continuum Systems" ? "Continuum" : name;
+};
+
 // ---------- Main Component ----------
 
 const App: React.FC = () => {
@@ -229,7 +248,8 @@ const App: React.FC = () => {
   };
 
   return (
-    <AppShell
+    <FontSizeProvider>
+      <AppShell
       padding="md"
       header={{ height: 70 }}
       navbar={{
@@ -263,7 +283,12 @@ const App: React.FC = () => {
                 <IconChevronDown size={22} color={palette.accentSoft} />
               </Group>
               <Stack gap={0}>
-                <Text fw={700} size="xl" c={palette.text}>
+                <Text 
+                  fw={700} 
+                  size="xl" 
+                  c={palette.text}
+                  style={{ fontFamily: '"Playfair Display", serif' }}
+                >
                   Continuum
                 </Text>
                 <Text size="sm" c={palette.textSoft}>
@@ -272,7 +297,7 @@ const App: React.FC = () => {
               </Stack>
             </Group>
 
-            <Group gap="xs" align="center">
+            <Group gap="md" align="center">
               <Text size="sm" c={palette.textSoft}>
                 Palette
               </Text>
@@ -318,146 +343,259 @@ const App: React.FC = () => {
             Navigation
           </Text>
 
-          <NavLink
-            label="Overview"
-            description="Continuum at a glance"
-            leftSection={
-              <IconLayoutDashboard size={18} color={palette.textSoft} />
-            }
-            component={Link}
-            to="/overview"
-            active={location.pathname === "/overview"}
-            styles={{
-              root: {
-                borderRadius: 8,
-                backgroundColor:
-                  location.pathname === "/overview"
-                    ? palette.surface
-                    : "transparent",
-              },
-              label: { color: palette.text },
-              description: { color: palette.textSoft },
+          <div
+            style={{
+              borderRadius: 8,
+              transition: "background-color 0.2s ease",
             }}
-          />
+            onMouseEnter={(e) => {
+              if (location.pathname !== "/overview") {
+                e.currentTarget.style.backgroundColor = palette.header;
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
+            }}
+          >
+            <NavLink
+              label="Overview"
+              description="Continuum at a glance"
+              leftSection={
+                <IconLayoutDashboard size={18} color={palette.textSoft} />
+              }
+              component={Link}
+              to="/overview"
+              active={location.pathname === "/overview"}
+              styles={{
+                root: {
+                  borderRadius: 8,
+                  backgroundColor:
+                    location.pathname === "/overview"
+                      ? palette.surface
+                      : "transparent",
+                },
+                label: { color: palette.text },
+                description: { color: palette.textSoft },
+              }}
+            />
+          </div>
 
-          <NavLink
-            label="Workspaces"
-            description={`${TERMS.tenants} and surfaces`}
-            leftSection={<IconBox size={18} color={palette.textSoft} />}
-            component={Link}
-            to="/workspaces"
-            active={location.pathname === "/workspaces"}
-            styles={{
-              root: {
-                borderRadius: 8,
-                backgroundColor:
-                  location.pathname === "/workspaces"
-                    ? palette.surface
-                    : "transparent",
-              },
-              label: { color: palette.text },
-              description: { color: palette.textSoft },
+          <div
+            style={{
+              borderRadius: 8,
+              transition: "background-color 0.2s ease",
             }}
-          />
+            onMouseEnter={(e) => {
+              if (location.pathname !== "/workspaces") {
+                e.currentTarget.style.backgroundColor = palette.header;
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
+            }}
+          >
+            <NavLink
+              label="Workspaces"
+              description={`${TERMS.tenants} and surfaces`}
+              leftSection={<IconBox size={18} color={palette.textSoft} />}
+              component={Link}
+              to="/workspaces"
+              active={location.pathname === "/workspaces"}
+              styles={{
+                root: {
+                  borderRadius: 8,
+                  backgroundColor:
+                    location.pathname === "/workspaces"
+                      ? palette.surface
+                      : "transparent",
+                },
+                label: { color: palette.text },
+                description: { color: palette.textSoft },
+              }}
+            />
+          </div>
 
-          <NavLink
-            label="Nodes"
-            description="Active cores"
-            leftSection={<IconBox size={18} color={palette.textSoft} />}
-            component={Link}
-            to="/nodes"
-            active={location.pathname === "/nodes"}
-            styles={{
-              root: {
-                borderRadius: 8,
-                backgroundColor:
-                  location.pathname === "/nodes"
-                    ? palette.surface
-                    : "transparent",
-              },
-              label: { color: palette.text },
-              description: { color: palette.textSoft },
+          <div
+            style={{
+              borderRadius: 8,
+              transition: "background-color 0.2s ease",
             }}
-          />
+            onMouseEnter={(e) => {
+              if (location.pathname !== "/nodes") {
+                e.currentTarget.style.backgroundColor = palette.header;
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
+            }}
+          >
+            <NavLink
+              label="Nodes"
+              description="Active cores"
+              leftSection={<IconBox size={18} color={palette.textSoft} />}
+              component={Link}
+              to="/nodes"
+              active={location.pathname === "/nodes"}
+              styles={{
+                root: {
+                  borderRadius: 8,
+                  backgroundColor:
+                    location.pathname === "/nodes"
+                      ? palette.surface
+                      : "transparent",
+                },
+                label: { color: palette.text },
+                description: { color: palette.textSoft },
+              }}
+            />
+          </div>
 
-          <NavLink
-            label="Settings"
-            description="Continuum options"
-            leftSection={<IconSettings size={18} color={palette.textSoft} />}
-            component={Link}
-            to="/settings"
-            active={location.pathname === "/settings"}
-            styles={{
-              root: {
-                borderRadius: 8,
-                backgroundColor:
-                  location.pathname === "/settings"
-                    ? palette.surface
-                    : "transparent",
-              },
-              label: { color: palette.text },
-              description: { color: palette.textSoft },
+          <div
+            style={{
+              borderRadius: 8,
+              transition: "background-color 0.2s ease",
             }}
-          />
+            onMouseEnter={(e) => {
+              if (location.pathname !== "/settings") {
+                e.currentTarget.style.backgroundColor = palette.header;
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
+            }}
+          >
+            <NavLink
+              label="Settings"
+              description="Continuum options"
+              leftSection={<IconSettings size={18} color={palette.textSoft} />}
+              component={Link}
+              to="/settings"
+              active={location.pathname === "/settings"}
+              styles={{
+                root: {
+                  borderRadius: 8,
+                  backgroundColor:
+                    location.pathname === "/settings"
+                      ? palette.surface
+                      : "transparent",
+                },
+                label: { color: palette.text },
+                description: { color: palette.textSoft },
+              }}
+            />
+          </div>
 
-          <NavLink
-            label="Glossary"
-            description="Continuum terminology"
-            leftSection={<IconBook size={18} color={palette.textSoft} />}
-            component={Link}
-            to="/glossary"
-            active={location.pathname === "/glossary"}
-            styles={{
-              root: {
-                borderRadius: 8,
-                backgroundColor:
-                  location.pathname === "/glossary"
-                    ? palette.surface
-                    : "transparent",
-              },
-              label: { color: palette.text },
-              description: { color: palette.textSoft },
+          <div
+            style={{
+              borderRadius: 8,
+              transition: "background-color 0.2s ease",
             }}
-          />
+            onMouseEnter={(e) => {
+              if (location.pathname !== "/documents") {
+                e.currentTarget.style.backgroundColor = palette.header;
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
+            }}
+          >
+            <NavLink
+              label="Documents"
+              description="Browse node documents"
+              leftSection={<IconFileText size={18} color={palette.textSoft} />}
+              component={Link}
+              to="/documents"
+              active={location.pathname === "/documents"}
+              styles={{
+                root: {
+                  borderRadius: 8,
+                  backgroundColor:
+                    location.pathname === "/documents"
+                      ? palette.surface
+                      : "transparent",
+                },
+                label: { color: palette.text },
+                description: { color: palette.textSoft },
+              }}
+            />
+          </div>
+
+          <div
+            style={{
+              borderRadius: 8,
+              transition: "background-color 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              if (location.pathname !== "/glossary") {
+                e.currentTarget.style.backgroundColor = palette.header;
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
+            }}
+          >
+            <NavLink
+              label="Glossary"
+              description="Continuum terminology"
+              leftSection={<IconBook size={18} color={palette.textSoft} />}
+              component={Link}
+              to="/glossary"
+              active={location.pathname === "/glossary"}
+              styles={{
+                root: {
+                  borderRadius: 8,
+                  backgroundColor:
+                    location.pathname === "/glossary"
+                      ? palette.surface
+                      : "transparent",
+                },
+                label: { color: palette.text },
+                description: { color: palette.textSoft },
+              }}
+            />
+          </div>
         </Stack>
       </AppShell.Navbar>
 
       {/* Main content */}
       <AppShell.Main>
-        <Routes>
+        <ContentRoot>
+          <Routes>
           <Route path="/" element={<Navigate to="/workspaces" replace />} />
           <Route
             path="/overview"
             element={
               <Container size="xl" py="lg">
-                <Stack gap="md">
-                  <Paper
-                    shadow="sm"
-                    p="md"
-                    radius="md"
-                    style={{
-                      backgroundColor: palette.surface,
-                      border: `1px solid ${palette.border}`,
-                    }}
-                  >
-                    <Stack gap="xs">
-                      <Text size="sm" c={palette.textSoft}>
-                        This is the first Continuum Surface. Select a palette, click a
-                        workspace, and Continuum will fetch its nodes from Continuum
-                        Core.
-                      </Text>
-                      <Text size="xs" c={palette.textSoft}>
-                        API Base: {API_BASE}
-                      </Text>
-                    </Stack>
-                  </Paper>
-                  <OverviewPage
-                    workspacesCount={workspaces.length}
-                    selectedWorkspaceName={selectedWorkspace?.name}
-                    nodesCount={nodes.length > 0 ? nodes.length : undefined}
-                    palette={palette}
-                  />
-                </Stack>
+                <PageFrame>
+                  <Stack gap="md">
+                    <Paper
+                      shadow="sm"
+                      p="md"
+                      radius="md"
+                      style={{
+                        backgroundColor: palette.surface,
+                        border: `1px solid ${palette.border}`,
+                      }}
+                    >
+                      <Stack gap="xs">
+                        <Text size="sm" c={palette.textSoft}>
+                          This is the first Continuum Surface. Select a palette, click a
+                          workspace, and Continuum will fetch its nodes from Continuum
+                          Core.
+                        </Text>
+                        <Text size="xs" c={palette.textSoft}>
+                          API Base: {API_BASE}
+                        </Text>
+                      </Stack>
+                    </Paper>
+                    <OverviewPage
+                      workspacesCount={workspaces.length}
+                      selectedWorkspaceName={selectedWorkspace?.name}
+                      nodesCount={nodes.length > 0 ? nodes.length : undefined}
+                      palette={palette}
+                    />
+                  </Stack>
+                </PageFrame>
               </Container>
             }
           />
@@ -465,43 +603,45 @@ const App: React.FC = () => {
             path="/workspaces"
             element={
               <Container size="xl" py="lg">
-                <Stack gap="md">
-                  <Paper
-                    shadow="sm"
-                    p="md"
-                    radius="md"
-                    style={{
-                      backgroundColor: palette.surface,
-                      border: `1px solid ${palette.border}`,
-                    }}
-                  >
-                    <Stack gap="xs">
-                      <Text size="sm" c={palette.textSoft}>
-                        This is the first Continuum Surface. Select a palette, click a
-                        workspace, and Continuum will fetch its nodes from Continuum
-                        Core.
-                      </Text>
-                      <Text size="xs" c={palette.textSoft}>
-                        API Base: {API_BASE}
-                      </Text>
-                    </Stack>
-                  </Paper>
-                  <WorkspacesPage
-                    workspaces={workspaces}
-                    workspacesLoading={workspacesLoading}
-                    workspacesError={workspacesError}
-                    selectedWorkspace={selectedWorkspace}
-                    nodes={nodes}
-                    nodesLoading={nodesLoading}
-                    nodesError={nodesError}
-                    onWorkspaceClick={handleWorkspaceClick}
-                    onRefreshWorkspaces={fetchWorkspaces}
-                    onRefreshNodes={selectedWorkspace ? () => fetchNodes(selectedWorkspace.id) : undefined}
-                    palette={palette}
-                    TERMS={TERMS}
-                    API_BASE={API_BASE}
-                  />
-                </Stack>
+                <PageFrame>
+                  <Stack gap="md">
+                    <Paper
+                      shadow="sm"
+                      p="md"
+                      radius="md"
+                      style={{
+                        backgroundColor: palette.surface,
+                        border: `1px solid ${palette.border}`,
+                      }}
+                    >
+                      <Stack gap="xs">
+                        <Text size="sm" c={palette.textSoft}>
+                          This is the first Continuum Surface. Select a palette, click a
+                          workspace, and Continuum will fetch its nodes from Continuum
+                          Core.
+                        </Text>
+                        <Text size="xs" c={palette.textSoft}>
+                          API Base: {API_BASE}
+                        </Text>
+                      </Stack>
+                    </Paper>
+                    <WorkspacesPage
+                      workspaces={workspaces}
+                      workspacesLoading={workspacesLoading}
+                      workspacesError={workspacesError}
+                      selectedWorkspace={selectedWorkspace}
+                      nodes={nodes}
+                      nodesLoading={nodesLoading}
+                      nodesError={nodesError}
+                      onWorkspaceClick={handleWorkspaceClick}
+                      onRefreshWorkspaces={fetchWorkspaces}
+                      onRefreshNodes={selectedWorkspace ? () => fetchNodes(selectedWorkspace.id) : undefined}
+                      palette={palette}
+                      TERMS={TERMS}
+                      API_BASE={API_BASE}
+                    />
+                  </Stack>
+                </PageFrame>
               </Container>
             }
           />
@@ -509,12 +649,24 @@ const App: React.FC = () => {
             path="/nodes"
             element={
               <Container size="xl" py="lg">
-                <NodesPage
-                  workspaces={workspaces}
-                  palette={palette}
-                  TERMS={TERMS}
-                  API_BASE={API_BASE}
-                />
+                <PageFrame>
+                  <NodesPage
+                    workspaces={workspaces}
+                    palette={palette}
+                    TERMS={TERMS}
+                    API_BASE={API_BASE}
+                  />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/nodes/:nodeId"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <NodeDetailPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
               </Container>
             }
           />
@@ -522,7 +674,29 @@ const App: React.FC = () => {
             path="/settings"
             element={
               <Container size="xl" py="lg">
-                <SettingsPage palette={palette} />
+                <PageFrame>
+                  <SettingsPage palette={palette} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/documents"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <DocumentsPage palette={palette} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/editor-spike"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <EditorSpikePage palette={palette} />
+                </PageFrame>
               </Container>
             }
           />
@@ -535,13 +709,19 @@ const App: React.FC = () => {
                   minHeight: "100vh",
                 }}
               >
-                <GlossaryPage />
+                <Container size="xl" py="lg">
+                  <PageFrame>
+                    <GlossaryPage />
+                  </PageFrame>
+                </Container>
               </div>
             }
           />
-        </Routes>
+          </Routes>
+        </ContentRoot>
       </AppShell.Main>
     </AppShell>
+    </FontSizeProvider>
   );
 };
 

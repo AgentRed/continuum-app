@@ -1,6 +1,5 @@
 :root {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-    "Segoe UI", sans-serif;
+  /* Font family removed - using custom fonts from index.css */
   line-height: 1.5;
   font-weight: 400;
 }
