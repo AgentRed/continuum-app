@@ -15,7 +15,12 @@ import {
   TextInput,
 } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
-import { displayOwnerName } from "../App";
+
+// Local helper to display owner name with transformation
+const displayOwnerName = (name: string | null | undefined): string => {
+  if (!name) return "Owner";
+  return name === "Continuum Systems" ? "Continuum" : name;
+};
 
 type Workspace = {
   id: string;
@@ -632,6 +637,8 @@ export default function WorkspacesPage({
     </Stack>
   );
 }
+
+
 
 
 

@@ -18,9 +18,11 @@ import {
   IconSettings,
   IconBook,
   IconFileText,
+  IconInfoCircle,
 } from "@tabler/icons-react";
 import GlossaryPage from "./pages/GlossaryPage";
 import OverviewPage from "./pages/OverviewPage";
+import AboutPage from "./pages/AboutPage";
 import WorkspacesPage from "./pages/WorkspacesPage";
 import NodesPage from "./pages/NodesPage";
 import NodeDetailPage from "./pages/NodeDetailPage";
@@ -162,17 +164,6 @@ const TERMS = {
   tenants: "Owners",
 };
 
-// ---------- Owner Name Display Helper ----------
-
-/**
- * Transforms owner names for display.
- * "Continuum Systems" -> "Continuum"
- * All other names are returned as-is.
- */
-export const displayOwnerName = (name: string | null | undefined): string => {
-  if (!name) return "—";
-  return name === "Continuum Systems" ? "Continuum" : name;
-};
 
 // ---------- Main Component ----------
 
@@ -386,6 +377,41 @@ const App: React.FC = () => {
               transition: "background-color 0.2s ease",
             }}
             onMouseEnter={(e) => {
+              if (location.pathname !== "/about") {
+                e.currentTarget.style.backgroundColor = palette.header;
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
+            }}
+          >
+            <NavLink
+              label="About"
+              description="What Continuum is"
+              leftSection={<IconInfoCircle size={18} color={palette.textSoft} />}
+              component={Link}
+              to="/about"
+              active={location.pathname === "/about"}
+              styles={{
+                root: {
+                  borderRadius: 8,
+                  backgroundColor:
+                    location.pathname === "/about"
+                      ? palette.surface
+                      : "transparent",
+                },
+                label: { color: palette.text },
+                description: { color: palette.textSoft },
+              }}
+            />
+          </div>
+
+          <div
+            style={{
+              borderRadius: 8,
+              transition: "background-color 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
               if (location.pathname !== "/workspaces") {
                 e.currentTarget.style.backgroundColor = palette.header;
               }
@@ -567,34 +593,13 @@ const App: React.FC = () => {
             element={
               <Container size="xl" py="lg">
                 <PageFrame>
-                  <Stack gap="md">
-                    <Paper
-                      shadow="sm"
-                      p="md"
-                      radius="md"
-                      style={{
-                        backgroundColor: palette.surface,
-                        border: `1px solid ${palette.border}`,
-                      }}
-                    >
-                      <Stack gap="xs">
-                        <Text size="sm" c={palette.textSoft}>
-                          This is the first Continuum Surface. Select a palette, click a
-                          workspace, and Continuum will fetch its nodes from Continuum
-                          Core.
-                        </Text>
-                        <Text size="xs" c={palette.textSoft}>
-                          API Base: {API_BASE}
-                        </Text>
-                      </Stack>
-                    </Paper>
-                    <OverviewPage
-                      workspacesCount={workspaces.length}
-                      selectedWorkspaceName={selectedWorkspace?.name}
-                      nodesCount={nodes.length > 0 ? nodes.length : undefined}
-                      palette={palette}
-                    />
-                  </Stack>
+                  <OverviewPage
+                    workspaces={workspaces}
+                    selectedWorkspace={selectedWorkspace}
+                    nodes={nodes}
+                    palette={palette}
+                    API_BASE={API_BASE}
+                  />
                 </PageFrame>
               </Container>
             }
@@ -643,6 +648,23 @@ const App: React.FC = () => {
                   </Stack>
                 </PageFrame>
               </Container>
+            }
+          />
+          <Route
+            path="/about"
+            element={
+              <div
+                style={{
+                  backgroundColor: palette.background,
+                  minHeight: "100vh",
+                }}
+              >
+                <Container size="xl" py="lg">
+                  <PageFrame>
+                    <AboutPage palette={palette} />
+                  </PageFrame>
+                </Container>
+              </div>
             }
           />
           <Route
