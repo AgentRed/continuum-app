@@ -3,8 +3,10 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
 import "@mantine/core/styles.css";
+import "@mantine/notifications/styles.css";
 
 import { MantineProvider, createTheme } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
 import App from "./App.tsx";
 import "./index.css";
 
@@ -54,6 +56,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <MantineProvider theme={theme} defaultColorScheme="dark">
+        <Notifications />
         <FontSizeInitializer />
         <App />
       </MantineProvider>

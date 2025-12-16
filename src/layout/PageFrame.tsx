@@ -8,16 +8,24 @@ interface PageFrameProps {
 
 const PageFrame: React.FC<PageFrameProps> = ({ children }) => {
   return (
-    <Box>
+    <Box style={{ width: "100%", maxWidth: "none" }}>
       <Group justify="flex-end" mb="sm" style={{ pointerEvents: "auto" }}>
         <FontSizeControl />
       </Group>
-      {children}
+      <Box style={{ width: "100%", maxWidth: "none", flex: 1, minWidth: 0 }}>
+        {children}
+      </Box>
     </Box>
   );
 };
 
 export default PageFrame;
+
+
+
+
+
+
 
 
 

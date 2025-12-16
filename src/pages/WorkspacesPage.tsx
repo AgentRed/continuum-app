@@ -4,6 +4,7 @@ import {
   Alert,
   Badge,
   Button,
+  Collapse,
   Group,
   Loader,
   Modal,
@@ -13,14 +14,10 @@ import {
   Table,
   Text,
   TextInput,
+  Tooltip,
 } from "@mantine/core";
-import { IconPlus } from "@tabler/icons-react";
+import { IconPlus, IconChevronDown, IconChevronUp, IconAlertTriangle } from "@tabler/icons-react";
 
-// Local helper to display owner name with transformation
-const displayOwnerName = (name: string | null | undefined): string => {
-  if (!name) return "Owner";
-  return name === "Continuum Systems" ? "Continuum" : name;
-};
 
 type Workspace = {
   id: string;
@@ -35,6 +32,10 @@ type Workspace = {
   _count: {
     nodes: number;
   };
+  readiness?: "READY" | "NOT_READY";
+  aiMode?: "GUARDED" | "ADVISORY" | "OPERATIONAL";
+  reasons?: string[];
+  warnings?: string[];
 };
 
 type Node = {
@@ -71,6 +72,88 @@ type WorkspacesPageProps = {
   API_BASE: string;
 };
 
+/**
+ * Component to display expandable readiness details (reasons and warnings) in workspace table
+ */
+function ReadinessDetailsRow({
+  workspace,
+  palette,
+}: {
+  workspace: Workspace;
+  palette: any;
+}) {
+  const [expanded, setExpanded] = React.useState(false);
+  const hasReasons = workspace.reasons && workspace.reasons.length > 0;
+  const hasWarnings = workspace.warnings && workspace.warnings.length > 0;
+  const hasContent = hasReasons || hasWarnings;
+
+  if (!hasContent) return null;
+
+  return (
+    <Paper
+      p="sm"
+      style={{
+        backgroundColor: palette.surfaceSoft,
+        border: `1px solid ${palette.border}`,
+        margin: "4px 0",
+      }}
+    >
+      <Stack gap="xs">
+        <Group
+          gap="xs"
+          style={{ cursor: "pointer" }}
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? (
+            <IconChevronUp size={14} color={palette.textSoft} />
+          ) : (
+            <IconChevronDown size={14} color={palette.textSoft} />
+          )}
+          <Text
+            size="xs"
+            fw={600}
+            c={palette.textSoft}
+            style={{ textDecoration: "underline" }}
+          >
+            Why {workspace.readiness === "NOT_READY" ? "NOT READY" : "warnings"}
+          </Text>
+        </Group>
+        <Collapse in={expanded}>
+          <Stack gap="xs" style={{ paddingLeft: "18px" }}>
+            {hasReasons && (
+              <Stack gap={4}>
+                <Text size="xs" fw={600} c={palette.text}>
+                  Blockers:
+                </Text>
+                {workspace.reasons!.map((reason, idx) => (
+                  <Text key={idx} size="xs" c={palette.textSoft} style={{ fontStyle: "italic" }}>
+                    • {reason}
+                  </Text>
+                ))}
+              </Stack>
+            )}
+            {hasWarnings && (
+              <Stack gap={4}>
+                <Group gap={4}>
+                  <IconAlertTriangle size={14} color={palette.accent} />
+                  <Text size="xs" fw={600} c={palette.accent}>
+                    Warnings:
+                  </Text>
+                </Group>
+                {workspace.warnings!.map((warning, idx) => (
+                  <Text key={idx} size="xs" c={palette.textSoft} style={{ fontStyle: "italic" }}>
+                    • {warning}
+                  </Text>
+                ))}
+              </Stack>
+            )}
+          </Stack>
+        </Collapse>
+      </Stack>
+    </Paper>
+  );
+}
+
 export default function WorkspacesPage({
   workspaces,
   workspacesLoading,
@@ -87,12 +170,13 @@ export default function WorkspacesPage({
   API_BASE,
 }: WorkspacesPageProps) {
   const navigate = useNavigate();
-  // Extract unique owners from workspaces
+  // Extract unique owners from workspaces (for backend, not displayed)
   const owners = Array.from(
     new Map(workspaces.map((ws) => [ws.tenant.id, ws.tenant])).values()
   );
   const hasSingleOwner = owners.length === 1;
   const defaultOwnerId = hasSingleOwner ? owners[0].id : null;
+
 
   // Create Workspace modal state
   const [createWorkspaceOpened, setCreateWorkspaceOpened] = useState(false);
@@ -212,7 +296,7 @@ export default function WorkspacesPage({
             <Group gap="xs">
               {selectedWorkspace && (
                 <Badge color="yellow" variant="light">
-                  {displayOwnerName(selectedWorkspace.tenant.name)} / {selectedWorkspace.name}
+                  {selectedWorkspace.name}
                 </Badge>
               )}
               <Button
@@ -272,8 +356,9 @@ export default function WorkspacesPage({
             >
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>{TERMS.tenant}</Table.Th>
                   <Table.Th>Workspace</Table.Th>
+                  <Table.Th style={{ textAlign: "center" }}>Readiness</Table.Th>
+                  <Table.Th style={{ textAlign: "center" }}>AI Mode</Table.Th>
                   <Table.Th style={{ textAlign: "center" }}>Nodes</Table.Th>
                   <Table.Th>Created</Table.Th>
                 </Table.Tr>
@@ -281,41 +366,89 @@ export default function WorkspacesPage({
               <Table.Tbody>
                 {workspaces.map((workspace) => {
                   const isSelected = selectedWorkspace?.id === workspace.id;
+                  const hasReasons = workspace.reasons && workspace.reasons.length > 0;
+                  const hasWarnings = workspace.warnings && workspace.warnings.length > 0;
+                  const showDetails = (workspace.readiness === "NOT_READY" && hasReasons) || hasWarnings;
                   return (
-                    <Table.Tr
-                      key={workspace.id}
-                      onClick={() => onWorkspaceClick(workspace)}
-                      style={{
-                        cursor: "pointer",
-                        backgroundColor: isSelected
-                          ? palette.accentSoft
-                          : "transparent",
-                        fontWeight: isSelected ? 600 : "normal",
-                      }}
-                    >
-                      <Table.Td>
-                        <Text fw={isSelected ? 600 : "normal"}>
-                          {displayOwnerName(workspace.tenant.name)}
-                        </Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text fw={isSelected ? 600 : "normal"}>
-                          {workspace.name}
-                        </Text>
-                      </Table.Td>
-                      <Table.Td style={{ textAlign: "center" }}>
-                        <Badge
-                          color="yellow"
-                          variant="filled"
-                          radius="xl"
-                        >
-                          {workspace._count.nodes}
-                        </Badge>
-                      </Table.Td>
-                      <Table.Td>
-                        {new Date(workspace.createdAt).toLocaleString()}
-                      </Table.Td>
-                    </Table.Tr>
+                    <React.Fragment key={workspace.id}>
+                      <Table.Tr
+                        onClick={() => onWorkspaceClick(workspace)}
+                        style={{
+                          cursor: "pointer",
+                          backgroundColor: isSelected
+                            ? palette.accentSoft
+                            : "transparent",
+                          fontWeight: isSelected ? 600 : "normal",
+                        }}
+                      >
+                        <Table.Td>
+                          <Text fw={isSelected ? 600 : "normal"}>
+                            {workspace.name}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td style={{ textAlign: "center" }}>
+                          {workspace.readiness ? (
+                            <Tooltip
+                              label={
+                                workspace.readiness === "NOT_READY" && hasReasons
+                                  ? workspace.reasons!.join(", ")
+                                  : workspace.readiness === "READY"
+                                  ? "Workspace is ready"
+                                  : "Unknown readiness status"
+                              }
+                              withArrow
+                            >
+                              <Badge
+                                color={workspace.readiness === "READY" ? "green" : "yellow"}
+                                variant="filled"
+                                size="sm"
+                              >
+                                {workspace.readiness === "READY" ? "READY" : "NOT READY"}
+                              </Badge>
+                            </Tooltip>
+                          ) : null}
+                        </Table.Td>
+                        <Table.Td style={{ textAlign: "center" }}>
+                          {workspace.aiMode ? (
+                            <Badge
+                              color={
+                                workspace.aiMode === "OPERATIONAL"
+                                  ? "blue"
+                                  : workspace.aiMode === "ADVISORY"
+                                  ? "cyan"
+                                  : "orange"
+                              }
+                              variant="filled"
+                              size="sm"
+                            >
+                              {workspace.aiMode}
+                            </Badge>
+                          ) : null}
+                        </Table.Td>
+                        <Table.Td style={{ textAlign: "center" }}>
+                          <Badge
+                            color="yellow"
+                            variant="filled"
+                            radius="xl"
+                          >
+                            {workspace._count.nodes}
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td>
+                          {new Date(workspace.createdAt).toLocaleString()}
+                        </Table.Td>
+                      </Table.Tr>
+                      {showDetails && (
+                        <Table.Tr>
+                          <Table.Td colSpan={5} style={{ padding: 0, border: "none" }}>
+                            <ReadinessDetailsRow
+                              workspace={workspace}
+                              palette={palette}
+                            />
+                          </Table.Td>
+                        </Table.Tr>
+                      )}
+                    </React.Fragment>
                   );
                 })}
               </Table.Tbody>
@@ -471,29 +604,6 @@ export default function WorkspacesPage({
             </Alert>
           )}
 
-          {!hasSingleOwner && (
-            <Select
-              label="Owner"
-              placeholder="Select an owner"
-              value={selectedOwnerId}
-              onChange={(value) => setSelectedOwnerId(value)}
-              data={owners.map((owner) => ({
-                value: owner.id,
-                label: displayOwnerName(owner.name),
-              }))}
-              required
-              styles={{
-                input: {
-                  backgroundColor: palette.header,
-                  borderColor: palette.border,
-                  color: palette.text,
-                },
-                dropdown: {
-                  backgroundColor: palette.surface,
-                },
-              }}
-            />
-          )}
 
           <TextInput
             label="Workspace Name"
@@ -637,6 +747,12 @@ export default function WorkspacesPage({
     </Stack>
   );
 }
+
+
+
+
+
+
 
 
 

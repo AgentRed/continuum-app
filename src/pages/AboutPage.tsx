@@ -46,14 +46,13 @@ export default function AboutPage({ palette }: AboutPageProps) {
               Why Continuum Exists
             </Text>
             <Text size="sm" style={{ color: "#334155", lineHeight: 1.7 }}>
-              As systems are built and operated over time, knowledge and
-              artifacts tend to scatter across tools, documents, and
-              codebases. Over time, it becomes difficult to maintain a clear
-              view of what exists, how things connect, and what rules govern
-              change. Systems tend to drift, intent is lost, and changes
-              compound without clear memory or governance. Continuum exists to
-              preserve meaning, structure, and accountability as systems
-              evolve.
+              As complex systems are built and operated over time, knowledge
+              and artifacts scatter across tools, documents, and codebases.
+              Over time, it becomes difficult to maintain a clear view of what
+              exists, how things connect, and what rules govern change. Systems
+              drift, intent is lost, and changes compound without clear memory
+              or governance. Continuum exists to preserve meaning, structure,
+              and accountability as systems evolve.
             </Text>
           </Stack>
 
@@ -75,47 +74,18 @@ export default function AboutPage({ palette }: AboutPageProps) {
               <GlossaryTerm term="Continuum" palette={palette}>
                 Continuum
               </GlossaryTerm>{" "}
-              is a system for organizing environments, knowledge, and build
-              programs and artifacts, including APIs, MCP servers, and
-              RAG-ready documents.
+              is a platform and work surface that aids users in building,
+              documenting, operating, and maintaining complex programs,
+              workflows, and systems over time. The platform captures
+              documentation as systems are built, supports human and AI
+              collaborative authorship, and uses governance to determine
+              authority, not authorship.
             </Text>
             <Text size="sm" style={{ color: "#334155", lineHeight: 1.7 }}>
-              It provides a consistent structure, UI{" "}
-              <GlossaryTerm term="Surface" palette={palette}>
-                surfaces
-              </GlossaryTerm>
-              , and governed rules so the{" "}
-              <GlossaryTerm term="Continuum" palette={palette}>
-                platform
-              </GlossaryTerm>
-              , and the{" "}
-              <GlossaryTerm term="Program" palette={palette}>
-                programs
-              </GlossaryTerm>{" "}
-              it helps build, can evolve without drifting, breaking, or silently
-              rewriting intent. <GlossaryTerm term="Continuum" palette={palette}>
-                Continuum
-              </GlossaryTerm>{" "}
-              includes the data model,{" "}
-              <GlossaryTerm term="Core API" palette={palette}>
-                API
-              </GlossaryTerm>
-              , UI{" "}
-              <GlossaryTerm term="Surface" palette={palette}>
-                surfaces
-              </GlossaryTerm>
-              , <GlossaryTerm term="Document" palette={palette}>
-                documents
-              </GlossaryTerm>
-              , and a <GlossaryTerm term="Governance" palette={palette}>
-                governance
-              </GlossaryTerm>{" "}
-              framework.
-            </Text>
-            <Text size="sm" style={{ color: "#334155", lineHeight: 1.7 }}>
-              Continuum is designed so documentation, artifacts, and system
-              knowledge can be captured, governed, and reused as systems evolve,
-              rather than recreated or rediscovered.
+              The system beneath the platform provides a consistent structure,
+              governed rules, and traceable lineage so that programs and
+              workflows can evolve without drifting, breaking, or silently
+              rewriting intent.
             </Text>
           </Stack>
 
@@ -134,13 +104,8 @@ export default function AboutPage({ palette }: AboutPageProps) {
               How Continuum Works
             </Text>
             <Text size="sm" style={{ color: "#334155", lineHeight: 1.7 }}>
-              Continuum is designed around a small set of explicit building
-              blocks, organized hierarchically and navigated through consistent{" "}
-              <GlossaryTerm term="Surface" palette={palette}>
-                surfaces
-              </GlossaryTerm>
-              , so complexity grows intentionally rather than accidentally.
-              Continuum organizes work into a hierarchical structure:
+              Continuum organizes work into a hierarchical structure of
+              building blocks, each with clear relationships:
             </Text>
             <List size="sm" style={{ color: "#334155" }}>
               <List.Item>
@@ -151,8 +116,7 @@ export default function AboutPage({ palette }: AboutPageProps) {
                     </GlossaryTerm>
                   </strong>{" "}
                   are top-level containers that group related functional
-                  domains. They represent major areas that teams manage and
-                  build within.
+                  domains.
                 </Text>
               </List.Item>
               <List.Item>
@@ -166,9 +130,8 @@ export default function AboutPage({ palette }: AboutPageProps) {
                   <GlossaryTerm term="Workspace" palette={palette}>
                     Workspace
                   </GlossaryTerm>
-                  . They are the units that teams browse into and attach{" "}
-                  <GlossaryTerm term="Program" palette={palette}>
-                    programs
+                  . <GlossaryTerm term="Program" palette={palette}>
+                    Programs
                   </GlossaryTerm>
                   , <GlossaryTerm term="Document" palette={palette}>
                     documents
@@ -176,11 +139,11 @@ export default function AboutPage({ palette }: AboutPageProps) {
                   , <GlossaryTerm term="Integration" palette={palette}>
                     integrations
                   </GlossaryTerm>
-                  , and{" "}
-                  <GlossaryTerm term="MCP server" palette={palette}>
-                    MCP servers
-                  </GlossaryTerm>{" "}
-                  to.
+                  , and interfaces attach to{" "}
+                  <GlossaryTerm term="Node" palette={palette}>
+                    Nodes
+                  </GlossaryTerm>
+                  .
                 </Text>
               </List.Item>
               <List.Item>
@@ -212,21 +175,6 @@ export default function AboutPage({ palette }: AboutPageProps) {
               <List.Item>
                 <Text size="sm" style={{ color: "#334155" }}>
                   <strong>
-                    <GlossaryTerm term="Module" palette={palette}>
-                      Modules
-                    </GlossaryTerm>
-                  </strong>{" "}
-                  are reusable components used by{" "}
-                  <GlossaryTerm term="Program" palette={palette}>
-                    Programs
-                  </GlossaryTerm>
-                  , such as templates, prompt modules, schema fragments,
-                  validation rules, or connector wrappers.
-                </Text>
-              </List.Item>
-              <List.Item>
-                <Text size="sm" style={{ color: "#334155" }}>
-                  <strong>
                     <GlossaryTerm term="Integration" palette={palette}>
                       Integrations
                     </GlossaryTerm>
@@ -237,27 +185,15 @@ export default function AboutPage({ palette }: AboutPageProps) {
               </List.Item>
               <List.Item>
                 <Text size="sm" style={{ color: "#334155" }}>
-                  <strong>
-                    <GlossaryTerm term="Surface" palette={palette}>
-                      Surfaces
-                    </GlossaryTerm>
-                  </strong>{" "}
-                  are UI screens that express navigational slices of Continuum,
-                  such as Workspace Browser, Node Explorer, Document Console,
-                  or Program Runner.
+                  <strong>Interfaces</strong> include{" "}
+                  <GlossaryTerm term="MCP server" palette={palette}>
+                    MCP servers
+                  </GlossaryTerm>
+                  , APIs, and future protocols that expose capabilities to
+                  external systems.
                 </Text>
               </List.Item>
             </List>
-            <Text size="sm" style={{ color: "#334155", lineHeight: 1.7 }}>
-              <GlossaryTerm term="Governance" palette={palette}>
-                Governance
-              </GlossaryTerm>{" "}
-              is the mechanism that prevents silent drift. It determines which
-              changes require explicit approval and which can be automatic,
-              ensuring that meaning-impacting changes are controlled while
-              allowing deterministic, reversible operations to proceed
-              automatically.
-            </Text>
           </Stack>
 
           <Divider />
@@ -283,22 +219,13 @@ export default function AboutPage({ palette }: AboutPageProps) {
               <GlossaryTerm term="Governed update" palette={palette}>
                 governed
               </GlossaryTerm>{" "}
-              updates. <GlossaryTerm term="Automatic update" palette={palette}>
+              changes. This distinction exists to prevent silent drift while
+              allowing deterministic, reversible operations to proceed
+              automatically. <GlossaryTerm term="Automatic update" palette={palette}>
                 Automatic updates
               </GlossaryTerm>{" "}
               are deterministic, non-destructive, reversible, fully logged,
-              and constrained by pre-approved rules. Examples include
-              recomputing derived indexes, refreshing{" "}
-              <GlossaryTerm term="RAG" palette={palette}>
-                RAG
-              </GlossaryTerm>{" "}
-              embeddings for unchanged{" "}
-              <GlossaryTerm term="Document" palette={palette}>
-                documents
-              </GlossaryTerm>
-              , and updating counts or cache entries.
-            </Text>
-            <Text size="sm" style={{ color: "#334155", lineHeight: 1.7 }}>
+              and constrained by pre-approved rules.{" "}
               <GlossaryTerm term="Governed update" palette={palette}>
                 Governed updates
               </GlossaryTerm>{" "}
@@ -308,18 +235,6 @@ export default function AboutPage({ palette }: AboutPageProps) {
                 governance
               </GlossaryTerm>{" "}
               rules or schemas, or have potential cross-workspace impact.
-              Examples include renaming{" "}
-              <GlossaryTerm term="Workspace" palette={palette}>
-                Workspaces
-              </GlossaryTerm>{" "}
-              or <GlossaryTerm term="Node" palette={palette}>
-                Nodes
-              </GlossaryTerm>
-              , changing hierarchy rules, altering schemas or permissions, and
-              rewriting <GlossaryTerm term="Governance" palette={palette}>
-                governance
-              </GlossaryTerm>{" "}
-              documents.
             </Text>
             <Text size="sm" style={{ color: "#334155", lineHeight: 1.7 }}>
               See{" "}
@@ -345,15 +260,14 @@ export default function AboutPage({ palette }: AboutPageProps) {
                 fontFamily: '"Playfair Display", serif',
               }}
             >
-              Who It Is For
+              Who Continuum Is For
             </Text>
             <Text size="sm" style={{ color: "#334155", lineHeight: 1.7 }}>
-              It is designed solo-first, for Continuum designer, JJ Seeber, with
-              collaboration features evolving as the{" "}
-              <GlossaryTerm term="Continuum" palette={palette}>
-                platform
-              </GlossaryTerm>{" "}
-              matures.
+              Continuum is for founders managing multiple ventures, builders of
+              long-lived systems, operators maintaining complex stacks, and
+              creators whose work evolves over time. Continuum is currently
+              designed solo-first for its creator, with collaboration features
+              evolving as the platform matures.
             </Text>
           </Stack>
 
@@ -369,23 +283,12 @@ export default function AboutPage({ palette }: AboutPageProps) {
                 fontFamily: '"Playfair Display", serif',
               }}
             >
-              Where It Is Going
+              Where Continuum Is Going
             </Text>
             <Text size="sm" style={{ color: "#334155", lineHeight: 1.7 }}>
-              Continuum is the work surface where ventures, tools, and operating
-              systems are formed and governed. It is evolving toward Nucleus, a
-              broader platform for building and operating companies with{" "}
-              <GlossaryTerm term="Governance" palette={palette}>
-                governance
-              </GlossaryTerm>
-              , traceability, and alignment built in. Nucleus Genesis will be
-              invite-only at first, as early builders join. Invite-only access
-              allows the platform and its{" "}
-              <GlossaryTerm term="Governance" palette={palette}>
-                governance
-              </GlossaryTerm>{" "}
-              model to mature alongside early builders who share an interest in
-              responsible, intentional system design.
+              Continuum is the foundational work surface from which Nucleus
+              emerges. Nucleus Genesis will be invite-only at first, as early
+              builders join.
             </Text>
           </Stack>
 
@@ -456,3 +359,9 @@ export default function AboutPage({ palette }: AboutPageProps) {
     </Stack>
   );
 }
+
+
+
+
+
+

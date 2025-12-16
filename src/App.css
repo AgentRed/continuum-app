@@ -15,3 +15,37 @@ body {
 .mantine-Table-root {
   font-size: 14px;
 }
+
+/* Document Reader - Full Width */
+.documentReader {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.documentReader > * {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.documentReader-content {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Ensure TypographyStylesProvider doesn't constrain width */
+.documentReader .mantine-TypographyStylesProvider-root {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Ensure Paper components in document reader expand fully */
+.documentReader .mantine-Paper-root {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Ensure Stack components in document reader expand fully */
+.documentReader .mantine-Stack-root {
+  width: 100% !important;
+  max-width: none !important;
+}

@@ -88,3 +88,9 @@ export default function GlossaryTextWrapper({
 
   return <>{parts}</>;
 }
+
+
+
+
+
+

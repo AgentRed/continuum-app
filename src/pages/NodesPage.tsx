@@ -10,11 +10,6 @@ import {
   Text,
 } from "@mantine/core";
 
-// Local helper to display owner name with transformation
-const displayOwnerName = (name: string | null | undefined): string => {
-  if (!name) return "Owner";
-  return name === "Continuum Systems" ? "Continuum" : name;
-};
 
 type Workspace = {
   id: string;
@@ -107,7 +102,7 @@ export default function NodesPage({
     { value: "", label: "All Workspaces" },
     ...workspaces.map((ws) => ({
       value: ws.id,
-      label: `${displayOwnerName(ws.tenant.name)} / ${ws.name}`,
+      label: ws.name,
     })),
   ];
 
@@ -332,6 +327,12 @@ export default function NodesPage({
     </Stack>
   );
 }
+
+
+
+
+
+
 
 
 

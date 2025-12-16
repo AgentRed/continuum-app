@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useLocation, Link } from "react-router-dom";
 import {
   AppShell,
+  Box,
   Container,
   Group,
   NavLink,
@@ -11,8 +12,6 @@ import {
   Text,
 } from "@mantine/core";
 import {
-  IconChevronUp,
-  IconChevronDown,
   IconLayoutDashboard,
   IconBox,
   IconSettings,
@@ -28,10 +27,13 @@ import NodesPage from "./pages/NodesPage";
 import NodeDetailPage from "./pages/NodeDetailPage";
 import SettingsPage from "./pages/SettingsPage";
 import DocumentsPage from "./pages/DocumentsPage";
+import DocumentViewPage from "./pages/DocumentViewPage";
+import CanonicalDocumentsPage from "./pages/CanonicalDocumentsPage";
 import EditorSpikePage from "./pages/EditorSpikePage";
 import PageFrame from "./layout/PageFrame";
 import ContentRoot from "./layout/ContentRoot";
 import { FontSizeProvider } from "./context/FontSizeContext";
+import ContinuumLogo from "./components/ContinuumLogo";
 
 // ---------- Types ----------
 
@@ -48,6 +50,8 @@ type Workspace = {
   _count: {
     nodes: number;
   };
+  readiness?: "READY" | "NOT_READY";
+  aiMode?: "GUARDED" | "ADVISORY" | "OPERATIONAL";
 };
 
 type Node = {
@@ -269,23 +273,6 @@ const App: React.FC = () => {
             style={{ height: "100%" }}
           >
             <Group gap="xs" align="center">
-              <Group gap={4}>
-                <IconChevronUp size={22} color={palette.accentSoft} />
-                <IconChevronDown size={22} color={palette.accentSoft} />
-              </Group>
-              <Stack gap={0}>
-                <Text 
-                  fw={700} 
-                  size="xl" 
-                  c={palette.text}
-                  style={{ fontFamily: '"Playfair Display", serif' }}
-                >
-                  Continuum
-                </Text>
-                <Text size="sm" c={palette.textSoft}>
-                  Workspace Browser
-                </Text>
-              </Stack>
             </Group>
 
             <Group gap="md" align="center">
@@ -325,6 +312,9 @@ const App: React.FC = () => {
         }}
       >
         <Stack gap="xs">
+          <Group justify="center" style={{ paddingBottom: "8px" }}>
+            <ContinuumLogo size="md" />
+          </Group>
           <Text
             size="xs"
             fw={600}
@@ -705,9 +695,38 @@ const App: React.FC = () => {
           <Route
             path="/documents"
             element={
-              <Container size="xl" py="lg">
+              <Container size="100%" py="lg" style={{ maxWidth: "100%" }}>
                 <PageFrame>
                   <DocumentsPage palette={palette} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/documents/:id"
+            element={
+              <Box 
+                px="md" 
+                py="lg" 
+                style={{ 
+                  flex: 1, 
+                  minWidth: 0, 
+                  width: "100%", 
+                  maxWidth: "none" 
+                }}
+              >
+                <PageFrame>
+                  <DocumentViewPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Box>
+            }
+          />
+          <Route
+            path="/canonical-documents"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <CanonicalDocumentsPage palette={palette} />
                 </PageFrame>
               </Container>
             }

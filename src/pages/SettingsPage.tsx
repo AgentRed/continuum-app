@@ -39,3 +39,9 @@ export default function SettingsPage({ palette }: SettingsPageProps) {
 
 
 
+
+
+
+
+
+

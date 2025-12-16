@@ -83,3 +83,9 @@ export const GLOSSARY_DEFINITIONS: Record<
       "A change that requires explicit approval before it becomes canonical, because it changes meaning, structure, or hierarchy, deletes or overwrites canonical content, modifies governance rules or schemas, or has potential cross-workspace impact.",
   },
 };
+
+
+
+
+
+
