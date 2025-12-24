@@ -17,55 +17,103 @@ export const GLOSSARY_DEFINITIONS: Record<
     definition:
       "The frontend UI that renders Continuum surfaces. It talks to the Core API and lets users browse and operate on the Continuum structure.",
   },
+  Tenant: {
+    title: "Owner",
+    definition: "The top-level ownership boundary. Owners contain Workspaces.",
+  },
   Workspace: {
     title: "Workspace",
     definition:
-      "A top-level organizational container in Continuum. A Workspace groups Nodes that belong together. Workspaces represent major areas that teams manage and build within.",
+      "A governed environment representing a coherent system under construction or operation. Workspaces contain Nodes.",
   },
   Node: {
     title: "Node",
     definition:
-      "A functional domain inside a Workspace. Nodes are the units that teams browse into and attach programs, documents, integrations, MCP servers, and RAG sources to.",
+      "A working unit inside a Workspace. Nodes contain documents and related operational artifacts.",
   },
   Document: {
     title: "Document",
     definition:
-      "A piece of content stored and governed inside Continuum. Documents can also be used as RAG sources. Documents should have stable identity and traceable lineage.",
+      "A written artifact stored in Continuum, typically scoped to a Node unless explicitly canonical.",
+  },
+  "Standard Document": {
+    title: "Standard Document",
+    definition:
+      "A normal editable document. Useful, but non-authoritative unless governed.",
+  },
+  "Canonical Document": {
+    title: "Canonical Document",
+    definition:
+      "A system-level document that is meant to be referenced across the platform.",
+  },
+  "Canonical document": {
+    title: "Canonical Document",
+    definition:
+      "A system-level document that is meant to be referenced across the platform.",
+  },
+  "Governed Document": {
+    title: "Governed Document",
+    definition:
+      "A binding document that has explicit authority and must be obeyed within its scope.",
+  },
+  "Governed document": {
+    title: "Governed Document",
+    definition:
+      "A binding document that has explicit authority and must be obeyed within its scope.",
+  },
+  "Canon Index": {
+    title: "Canon Index",
+    definition:
+      "The authoritative registry of governed documents and their precedence rules.",
+  },
+  Scope: {
+    title: "Scope",
+    definition:
+      "The boundary that defines where a rule or document applies, for example Continuum-wide, Workspace, or Node.",
+  },
+  Precedence: {
+    title: "Precedence",
+    definition:
+      "The rule for which governed document wins when multiple apply, determined by scope first, then ordering.",
+  },
+  Proposal: {
+    title: "Proposal",
+    definition: "A suggested change that is reviewable and not binding.",
+  },
+  "Approved Proposal": {
+    title: "Approved Proposal",
+    definition:
+      "A proposal that has been explicitly accepted and is ready to be applied.",
+  },
+  Application: {
+    title: "Application",
+    definition:
+      "The act of applying an approved proposal to update the actual system state or canon.",
+  },
+  "Analysis Engine": {
+    title: "Analysis Engine",
+    definition:
+      "A non-authoritative tool that evaluates through explicit lenses and produces advisory output.",
+  },
+  Lens: {
+    title: "Lens",
+    definition:
+      "A declared evaluation framework used by analysis, defining what criteria apply and what is in scope.",
+  },
+  "Knowledge Source": {
+    title: "Knowledge Source",
+    definition:
+      "Any connected source of information used for context. Knowledge sources never define canon by default.",
   },
   Program: {
     title: "Program",
     definition:
-      "A defined build or operational unit inside a Node, for example a workflow, an automation, an agent instruction set, a generator, a build plan, or a runbook.",
-  },
-  Module: {
-    title: "Module",
-    definition:
-      "A reusable component used by Programs, for example a template, a prompt module, a schema fragment, a validation rule, or a connector wrapper.",
-  },
-  Integration: {
-    title: "Integration",
-    definition:
-      "A connection to an external system, for example GitHub, Slite, Google Drive, Slack, n8n, Railway, or any API.",
-  },
-  "MCP server": {
-    title: "MCP server",
-    definition:
-      "A tool server that exposes capabilities to an LLM client via the Model Context Protocol. In Continuum, MCP servers are treated as build artifacts that can be created, versioned, and governed.",
-  },
-  RAG: {
-    title: "RAG",
-    definition:
-      "Retrieval Augmented Generation, meaning the system can pull from a curated knowledge store to answer questions with higher accuracy and continuity.",
-  },
-  "Knowledge store": {
-    title: "Knowledge store",
-    definition:
-      "A collection of documents and sources that are indexed for retrieval. A knowledge store can be used for RAG, validation, or governance checks.",
+      "A tool-like capability that can operate in a Workspace or Node, but has no authority by default.",
   },
   Surface: {
     title: "Surface",
     definition:
-      "A UI screen that expresses one navigational slice of Continuum, for example Workspace Browser, Node Explorer, Document Console, Program Runner.",
+      "A user-facing interface that presents Continuum structures and actions, for example the website UI.",
   },
   Governance: {
     title: "Governance",

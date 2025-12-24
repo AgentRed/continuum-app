@@ -14,7 +14,7 @@ import {
   Text,
   TextInput,
 } from "@mantine/core";
-import { IconPlus } from "@tabler/icons-react";
+import { Icons } from "../ui/icons";
 
 // Local helper to display owner name with transformation
 const displayOwnerName = (name: string | null | undefined): string => {
@@ -216,7 +216,7 @@ export default function WorkspacesPage({
                 </Badge>
               )}
               <Button
-                leftSection={<IconPlus size={16} />}
+                leftSection={<Icons.Add size={16} />}
                 onClick={() => setCreateWorkspaceOpened(true)}
                 size="sm"
                 styles={{
@@ -341,7 +341,7 @@ export default function WorkspacesPage({
                 Nodes for {selectedWorkspace.name}
               </Text>
               <Button
-                leftSection={<IconPlus size={16} />}
+                leftSection={<Icons.Add size={16} />}
                 onClick={() => setCreateNodeOpened(true)}
                 size="sm"
                 disabled={!selectedWorkspace}
@@ -637,6 +637,26 @@ export default function WorkspacesPage({
     </Stack>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

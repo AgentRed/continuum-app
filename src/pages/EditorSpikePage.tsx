@@ -29,7 +29,7 @@ import {
   InsertCodeBlock,
 } from "@mdxeditor/editor";
 import "@mdxeditor/editor/style.css";
-import { IconEye, IconEdit } from "@tabler/icons-react";
+import { Icons } from "../ui/icons";
 
 type EditorSpikePageProps = {
   palette: any;
@@ -193,7 +193,7 @@ function hello() {
               <Button
                 size="xs"
                 variant={viewMode === "edit" ? "filled" : "outline"}
-                leftSection={<IconEdit size={14} />}
+                leftSection={<Icons.Edit size={14} />}
                 onClick={() => setViewMode("edit")}
                 styles={{
                   root: {
@@ -209,7 +209,7 @@ function hello() {
               <Button
                 size="xs"
                 variant={viewMode === "preview" ? "filled" : "outline"}
-                leftSection={<IconEye size={14} />}
+                leftSection={<Icons.View size={14} />}
                 onClick={() => setViewMode("preview")}
                 styles={{
                   root: {
@@ -322,6 +322,26 @@ function hello() {
     </Stack>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

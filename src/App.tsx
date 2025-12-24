@@ -1,25 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Routes, Route, Navigate, useLocation, Link } from "react-router-dom";
 import {
   AppShell,
+  Collapse,
   Container,
   Group,
   NavLink,
   Paper,
-  Select,
+  ScrollArea,
   Stack,
   Text,
 } from "@mantine/core";
-import {
-  IconChevronUp,
-  IconChevronDown,
-  IconLayoutDashboard,
-  IconBox,
-  IconSettings,
-  IconBook,
-  IconFileText,
-  IconInfoCircle,
-} from "@tabler/icons-react";
+import { AppIcons } from "./ui/iconMap";
+import { Icons } from "./ui/icons";
+import { sideNavSections, matchesRoute, type SideNavSection } from "./navigation/navConfig";
+import SideNavItem from "./components/SideNavItem";
 import GlossaryPage from "./pages/GlossaryPage";
 import OverviewPage from "./pages/OverviewPage";
 import AboutPage from "./pages/AboutPage";
@@ -28,10 +23,41 @@ import NodesPage from "./pages/NodesPage";
 import NodeDetailPage from "./pages/NodeDetailPage";
 import SettingsPage from "./pages/SettingsPage";
 import DocumentsPage from "./pages/DocumentsPage";
+import DocumentViewPage from "./pages/DocumentViewPage";
 import EditorSpikePage from "./pages/EditorSpikePage";
+import CanonicalDocumentsPage from "./pages/CanonicalDocumentsPage";
+import CanonicalDocumentViewPage from "./pages/CanonicalDocumentViewPage";
+import DevelopmentPlanPage from "./pages/DevelopmentPlanPage";
+import ProposalsPage from "./pages/ProposalsPage";
+import ProposalDetailPage from "./pages/ProposalDetailPage";
+import ContentAuditPage from "./pages/ContentAuditPage";
+import ContinuumGovernancePage from "./pages/ContinuumGovernancePage";
+import WorkspaceGovernancePage from "./pages/WorkspaceGovernancePage";
+import ChatSessionsPage from "./pages/ChatSessionsPage";
+import ChatSessionPage from "./pages/ChatSessionPage";
+import ConversationsPage from "./pages/ConversationsPage";
+import ConversationDetailPage from "./pages/ConversationDetailPage";
+import ModelsPage from "./pages/ModelsPage";
+import ModelRegistryPage from "./pages/ModelRegistryPage";
+import ChatPage from "./pages/ChatPage";
+import SystemChatPage from "./pages/SystemChatPage";
+import WorkspaceChatPage from "./pages/WorkspaceChatPage";
+import DiagnosticsPage from "./pages/DiagnosticsPage";
+import WhitepapersPage from "./pages/WhitepapersPage";
+import WhitepaperDetailPage from "./pages/WhitepaperDetailPage";
+import LibraryPage from "./pages/LibraryPage";
+import MediaLibraryPage from "./pages/MediaLibraryPage";
+import PlaylistDetailPage from "./pages/PlaylistDetailPage";
 import PageFrame from "./layout/PageFrame";
 import ContentRoot from "./layout/ContentRoot";
+import AppFooter from "./layout/AppFooter";
+import TopNav from "./components/TopNav";
+import SoundtrackPlayer from "./components/SoundtrackPlayer";
+import { AudioPlayerProvider } from "./context/AudioPlayerContext";
 import { FontSizeProvider } from "./context/FontSizeContext";
+import { ContentQualityProvider } from "./context/ContentQualityContext";
+import ContinuumWordmark from "./components/ContinuumWordmark";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // ---------- Types ----------
 
@@ -154,8 +180,7 @@ const PALETTE_OPTIONS: { value: PaletteKey; label: string }[] = Object.keys(
   label: key,
 }));
 
-const API_BASE =
-  import.meta.env.VITE_API_BASE || "http://localhost:8080";
+import { API_BASE } from "./config";
 
 // ---------- Vocabulary Map ----------
 
@@ -169,9 +194,54 @@ const TERMS = {
 
 const App: React.FC = () => {
   const location = useLocation();
-  const [paletteKey, setPaletteKey] =
-    useState<PaletteKey>("Regal Navy & Gold");
-  const palette = PALETTES[paletteKey];
+  
+  // Determine which section should be expanded based on current route
+  const getActiveSection = (pathname: string): string | null => {
+    for (const section of sideNavSections) {
+      for (const item of section.items) {
+        if (matchesRoute(pathname, item.matchers)) {
+          return section.id;
+        }
+      }
+    }
+    return null;
+  };
+  
+  const defaultActiveSection = useMemo(() => getActiveSection(location.pathname), [location.pathname]);
+  
+  // Track which sections are open (start with active section open)
+  const [openSections, setOpenSections] = useState<Set<string>>(() => {
+    const initial = new Set<string>();
+    if (defaultActiveSection) {
+      initial.add(defaultActiveSection);
+    }
+    return initial;
+  });
+  
+  // Update open sections when route changes
+  useEffect(() => {
+    if (defaultActiveSection) {
+      setOpenSections((prev) => {
+        const next = new Set(prev);
+        next.add(defaultActiveSection);
+        return next;
+      });
+    }
+  }, [defaultActiveSection]);
+  
+  const toggleSection = (section: string) => {
+    setOpenSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(section)) {
+        next.delete(section);
+      } else {
+        next.add(section);
+      }
+      return next;
+    });
+  };
+  // Use only Regal Navy & Gold palette
+  const palette = PALETTES["Regal Navy & Gold"];
 
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [workspacesLoading, setWorkspacesLoading] = useState(false);
@@ -239,10 +309,12 @@ const App: React.FC = () => {
   };
 
   return (
-    <FontSizeProvider>
+    <AudioPlayerProvider>
+      <FontSizeProvider>
+        <ContentQualityProvider API_BASE={API_BASE}>
       <AppShell
       padding="md"
-      header={{ height: 70 }}
+      header={{ height: 40 }}
       navbar={{
         width: 260,
         breakpoint: "sm",
@@ -252,68 +324,28 @@ const App: React.FC = () => {
           backgroundColor: palette.background,
           color: palette.text,
           minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+        },
+        header: {
+          backgroundColor: palette.header,
+          borderBottom: `1px solid ${palette.border}`,
         },
       }}
     >
-      {/* Header */}
-      <AppShell.Header
-        style={{
-          backgroundColor: palette.header,
-          borderBottom: `1px solid ${palette.border}`,
-        }}
-      >
-        <Container size="xl" style={{ height: "100%" }}>
-          <Group
-            justify="space-between"
-            align="center"
-            style={{ height: "100%" }}
-          >
-            <Group gap="xs" align="center">
-              <Group gap={4}>
-                <IconChevronUp size={22} color={palette.accentSoft} />
-                <IconChevronDown size={22} color={palette.accentSoft} />
-              </Group>
-              <Stack gap={0}>
-                <Text 
-                  fw={700} 
-                  size="xl" 
-                  c={palette.text}
-                  style={{ fontFamily: '"Playfair Display", serif' }}
-                >
-                  Continuum
-                </Text>
-                <Text size="sm" c={palette.textSoft}>
-                  Workspace Browser
-                </Text>
-              </Stack>
-            </Group>
-
-            <Group gap="md" align="center">
-              <Text size="sm" c={palette.textSoft}>
-                Palette
-              </Text>
-              <Select
-                value={paletteKey}
-                onChange={(value) =>
-                  value && setPaletteKey(value as PaletteKey)
-                }
-                data={PALETTE_OPTIONS}
-                allowDeselect={false}
-                size="sm"
-                styles={{
-                  input: {
-                    backgroundColor: palette.surface,
-                    borderColor: palette.border,
-                    color: palette.text,
-                  },
-                  dropdown: {
-                    backgroundColor: palette.surface,
-                  },
-                }}
-              />
-            </Group>
-          </Group>
-        </Container>
+      {/* Header - Full width with top nav only */}
+      <AppShell.Header>
+        <div
+          style={{
+            height: "40px",
+            backgroundColor: palette.header,
+            borderBottom: `1px solid ${palette.border}`,
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <TopNav palette={palette} />
+        </div>
       </AppShell.Header>
 
       {/* Sidebar nav */}
@@ -322,272 +354,82 @@ const App: React.FC = () => {
         style={{
           backgroundColor: "#020617",
           borderRight: `1px solid ${palette.border}`,
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        <Stack gap="xs">
-          <Text
-            size="xs"
-            fw={600}
-            style={{ letterSpacing: 1, textTransform: "uppercase" }}
-            c={palette.textSoft}
-          >
-            Navigation
-          </Text>
+        <Stack gap="md" style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+          {/* Wordmark at top of sidebar */}
+          <Group justify="center" align="center" style={{ padding: "12px 0", flexShrink: 0 }}>
+            <ContinuumWordmark />
+          </Group>
 
-          <div
-            style={{
-              borderRadius: 8,
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              if (location.pathname !== "/overview") {
-                e.currentTarget.style.backgroundColor = palette.header;
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "transparent";
-            }}
-          >
-            <NavLink
-              label="Overview"
-              description="Continuum at a glance"
-              leftSection={
-                <IconLayoutDashboard size={18} color={palette.textSoft} />
-              }
-              component={Link}
-              to="/overview"
-              active={location.pathname === "/overview"}
-              styles={{
-                root: {
-                  borderRadius: 8,
-                  backgroundColor:
-                    location.pathname === "/overview"
-                      ? palette.surface
-                      : "transparent",
-                },
-                label: { color: palette.text },
-                description: { color: palette.textSoft },
-              }}
-            />
-          </div>
+          {/* Side Navigation Sections - Scrollable */}
+          <ScrollArea style={{ flex: 1, minHeight: 0 }}>
+            <Stack gap="md">
+              {sideNavSections.map((section) => (
+                <Stack key={section.id} gap={4}>
+                  <Group
+                    gap="xs"
+                    onClick={() => toggleSection(section.id)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = palette.header;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                    }}
+                    p={4}
+                    style={{ cursor: "pointer", borderRadius: 8 }}
+                  >
+                    <Text
+                      size="xs"
+                      fw={600}
+                      style={{ letterSpacing: 1, textTransform: "uppercase", flex: 1 }}
+                      c={palette.textSoft}
+                    >
+                      {section.label}
+                    </Text>
+                    <Icons.ChevronDown
+                      size={16}
+                      color={palette.textSoft}
+                      style={{
+                        transform: openSections.has(section.id) ? "rotate(0deg)" : "rotate(-90deg)",
+                        transition: "transform 0.2s ease",
+                      }}
+                    />
+                  </Group>
+                  <Collapse in={openSections.has(section.id)}>
+                    <Stack gap={4}>
+                      {section.items.map((item) => (
+                        <SideNavItem key={item.path} item={item} palette={palette} />
+                      ))}
+                    </Stack>
+                  </Collapse>
+                </Stack>
+              ))}
+            </Stack>
+          </ScrollArea>
 
-          <div
-            style={{
-              borderRadius: 8,
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              if (location.pathname !== "/about") {
-                e.currentTarget.style.backgroundColor = palette.header;
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "transparent";
-            }}
+          {/* Soundtrack Player - Fixed at bottom */}
+          <ErrorBoundary
+            fallback={
+              <div style={{ padding: 12, color: palette.textSoft, fontSize: "12px" }}>
+                Player unavailable
+              </div>
+            }
+            palette={palette}
           >
-            <NavLink
-              label="About"
-              description="What Continuum is"
-              leftSection={<IconInfoCircle size={18} color={palette.textSoft} />}
-              component={Link}
-              to="/about"
-              active={location.pathname === "/about"}
-              styles={{
-                root: {
-                  borderRadius: 8,
-                  backgroundColor:
-                    location.pathname === "/about"
-                      ? palette.surface
-                      : "transparent",
-                },
-                label: { color: palette.text },
-                description: { color: palette.textSoft },
-              }}
-            />
-          </div>
-
-          <div
-            style={{
-              borderRadius: 8,
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              if (location.pathname !== "/workspaces") {
-                e.currentTarget.style.backgroundColor = palette.header;
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "transparent";
-            }}
-          >
-            <NavLink
-              label="Workspaces"
-              description={`${TERMS.tenants} and surfaces`}
-              leftSection={<IconBox size={18} color={palette.textSoft} />}
-              component={Link}
-              to="/workspaces"
-              active={location.pathname === "/workspaces"}
-              styles={{
-                root: {
-                  borderRadius: 8,
-                  backgroundColor:
-                    location.pathname === "/workspaces"
-                      ? palette.surface
-                      : "transparent",
-                },
-                label: { color: palette.text },
-                description: { color: palette.textSoft },
-              }}
-            />
-          </div>
-
-          <div
-            style={{
-              borderRadius: 8,
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              if (location.pathname !== "/nodes") {
-                e.currentTarget.style.backgroundColor = palette.header;
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "transparent";
-            }}
-          >
-            <NavLink
-              label="Nodes"
-              description="Active cores"
-              leftSection={<IconBox size={18} color={palette.textSoft} />}
-              component={Link}
-              to="/nodes"
-              active={location.pathname === "/nodes"}
-              styles={{
-                root: {
-                  borderRadius: 8,
-                  backgroundColor:
-                    location.pathname === "/nodes"
-                      ? palette.surface
-                      : "transparent",
-                },
-                label: { color: palette.text },
-                description: { color: palette.textSoft },
-              }}
-            />
-          </div>
-
-          <div
-            style={{
-              borderRadius: 8,
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              if (location.pathname !== "/settings") {
-                e.currentTarget.style.backgroundColor = palette.header;
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "transparent";
-            }}
-          >
-            <NavLink
-              label="Settings"
-              description="Continuum options"
-              leftSection={<IconSettings size={18} color={palette.textSoft} />}
-              component={Link}
-              to="/settings"
-              active={location.pathname === "/settings"}
-              styles={{
-                root: {
-                  borderRadius: 8,
-                  backgroundColor:
-                    location.pathname === "/settings"
-                      ? palette.surface
-                      : "transparent",
-                },
-                label: { color: palette.text },
-                description: { color: palette.textSoft },
-              }}
-            />
-          </div>
-
-          <div
-            style={{
-              borderRadius: 8,
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              if (location.pathname !== "/documents") {
-                e.currentTarget.style.backgroundColor = palette.header;
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "transparent";
-            }}
-          >
-            <NavLink
-              label="Documents"
-              description="Browse node documents"
-              leftSection={<IconFileText size={18} color={palette.textSoft} />}
-              component={Link}
-              to="/documents"
-              active={location.pathname === "/documents"}
-              styles={{
-                root: {
-                  borderRadius: 8,
-                  backgroundColor:
-                    location.pathname === "/documents"
-                      ? palette.surface
-                      : "transparent",
-                },
-                label: { color: palette.text },
-                description: { color: palette.textSoft },
-              }}
-            />
-          </div>
-
-          <div
-            style={{
-              borderRadius: 8,
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              if (location.pathname !== "/glossary") {
-                e.currentTarget.style.backgroundColor = palette.header;
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "transparent";
-            }}
-          >
-            <NavLink
-              label="Glossary"
-              description="Continuum terminology"
-              leftSection={<IconBook size={18} color={palette.textSoft} />}
-              component={Link}
-              to="/glossary"
-              active={location.pathname === "/glossary"}
-              styles={{
-                root: {
-                  borderRadius: 8,
-                  backgroundColor:
-                    location.pathname === "/glossary"
-                      ? palette.surface
-                      : "transparent",
-                },
-                label: { color: palette.text },
-                description: { color: palette.textSoft },
-              }}
-            />
-          </div>
+            <SoundtrackPlayer palette={palette} />
+          </ErrorBoundary>
         </Stack>
       </AppShell.Navbar>
 
       {/* Main content */}
-      <AppShell.Main>
-        <ContentRoot>
-          <Routes>
-          <Route path="/" element={<Navigate to="/workspaces" replace />} />
+      <AppShell.Main style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+        <ContentRoot style={{ flex: 1 }}>
+          <ErrorBoundary palette={palette}>
+            <Routes>
+          <Route path="/" element={<Navigate to="/overview" replace />} />
           <Route
             path="/overview"
             element={
@@ -599,6 +441,7 @@ const App: React.FC = () => {
                     nodes={nodes}
                     palette={palette}
                     API_BASE={API_BASE}
+                    TERMS={TERMS}
                   />
                 </PageFrame>
               </Container>
@@ -661,7 +504,7 @@ const App: React.FC = () => {
               >
                 <Container size="xl" py="lg">
                   <PageFrame>
-                    <AboutPage palette={palette} />
+                    <AboutPage palette={palette} API_BASE={API_BASE} />
                   </PageFrame>
                 </Container>
               </div>
@@ -693,6 +536,56 @@ const App: React.FC = () => {
             }
           />
           <Route
+            path="/models"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <ModelsPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/system/model-registry"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <ModelRegistryPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/diagnostics"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <DiagnosticsPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/whitepapers"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <WhitepapersPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/whitepapers/:id"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <WhitepaperDetailPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
             path="/settings"
             element={
               <Container size="xl" py="lg">
@@ -708,6 +601,176 @@ const App: React.FC = () => {
               <Container size="xl" py="lg">
                 <PageFrame>
                   <DocumentsPage palette={palette} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/documents/:id"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <DocumentViewPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/library"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <LibraryPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/media"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <MediaLibraryPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/media/playlists/:id"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <PlaylistDetailPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/canonical-documents"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <CanonicalDocumentsPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/canonical-documents/:id"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <CanonicalDocumentViewPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/proposals"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <ProposalsPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/proposals/:id"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <ProposalDetailPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/chat"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <ChatPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/workspaces/:id/chat"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <WorkspaceChatPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/chat/:sessionId"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <ChatSessionPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/conversations"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <ConversationsPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/conversations/:id"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <ConversationDetailPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/governance/continuum"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <ContinuumGovernancePage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/governance/workspaces"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <WorkspaceGovernancePage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/content-audit"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <ContentAuditPage palette={palette} API_BASE={API_BASE} />
+                </PageFrame>
+              </Container>
+            }
+          />
+          <Route
+            path="/development-plan"
+            element={
+              <Container size="xl" py="lg">
+                <PageFrame>
+                  <DevelopmentPlanPage palette={palette} API_BASE={API_BASE} />
                 </PageFrame>
               </Container>
             }
@@ -733,17 +796,21 @@ const App: React.FC = () => {
               >
                 <Container size="xl" py="lg">
                   <PageFrame>
-                    <GlossaryPage />
+                    <GlossaryPage palette={palette} API_BASE={API_BASE} />
                   </PageFrame>
                 </Container>
               </div>
             }
           />
-          </Routes>
+            </Routes>
+          </ErrorBoundary>
         </ContentRoot>
+        <AppFooter palette={palette} />
       </AppShell.Main>
     </AppShell>
+      </ContentQualityProvider>
     </FontSizeProvider>
+    </AudioPlayerProvider>
   );
 };
 

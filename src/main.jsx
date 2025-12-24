@@ -6,6 +6,8 @@ import "@mantine/core/styles.css";
 
 import { MantineProvider, createTheme } from "@mantine/core";
 import App from "./App.tsx";
+import { AuditProvider } from "./context/AuditContext";
+import { API_BASE } from "./config";
 import "./index.css";
 
 // Typography theme configuration
@@ -54,8 +56,10 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <MantineProvider theme={theme} defaultColorScheme="dark">
-        <FontSizeInitializer />
-        <App />
+        <AuditProvider API_BASE={API_BASE}>
+          <FontSizeInitializer />
+          <App />
+        </AuditProvider>
       </MantineProvider>
     </BrowserRouter>
   </React.StrictMode>

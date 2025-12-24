@@ -15,7 +15,7 @@ import {
   Textarea,
   TextInput,
 } from "@mantine/core";
-import { IconArrowLeft, IconPlus } from "@tabler/icons-react";
+import { Icons } from "../ui/icons";
 
 // Local helper to display owner name with transformation
 const displayOwnerName = (name: string | null | undefined): string => {
@@ -261,7 +261,7 @@ export default function NodeDetailPage({
               {error || "Node not found"}
             </Text>
             <Button
-              leftSection={<IconArrowLeft size={16} />}
+              leftSection={<Icons.ArrowLeft size={16} />}
               onClick={() => navigate("/nodes")}
               size="sm"
               variant="subtle"
@@ -316,7 +316,7 @@ export default function NodeDetailPage({
           <Group justify="space-between" align="center">
             <Group gap="xs">
               <Button
-                leftSection={<IconArrowLeft size={16} />}
+                leftSection={<Icons.ArrowLeft size={16} />}
                 onClick={() => navigate("/nodes")}
                 size="sm"
                 variant="subtle"
@@ -468,7 +468,7 @@ export default function NodeDetailPage({
               Documents
             </Text>
             <Button
-              leftSection={<IconPlus size={16} />}
+              leftSection={<Icons.Add size={16} />}
               onClick={() => setCreateDocumentOpened(true)}
               size="sm"
               styles={{
@@ -746,6 +746,26 @@ export default function NodeDetailPage({
     </Stack>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ActionIcon, Group, Text, Tooltip } from "@mantine/core";
-import { IconMinus, IconPlus, IconLetterA } from "@tabler/icons-react";
+import { Icons } from "../ui/icons";
 import { useContentScale } from "../context/FontSizeContext";
 
 const FontSizeControl: React.FC = () => {
@@ -70,7 +70,7 @@ const FontSizeControl: React.FC = () => {
               },
             }}
           >
-            <IconMinus size={14} />
+            <Icons.Minus size={14} />
           </ActionIcon>
         </Tooltip>
         <Tooltip label="Text size" withArrow>
@@ -93,7 +93,7 @@ const FontSizeControl: React.FC = () => {
               },
             }}
           >
-            <IconLetterA size={14} />
+            <Icons.LetterA size={14} />
           </ActionIcon>
         </Tooltip>
         <Tooltip label="Larger" withArrow>
@@ -116,7 +116,7 @@ const FontSizeControl: React.FC = () => {
               },
             }}
           >
-            <IconPlus size={14} />
+            <Icons.Add size={14} />
           </ActionIcon>
         </Tooltip>
         <Text size="xs" c="#ffffff" style={{ minWidth: "36px", textAlign: "center", fontFamily: "monospace" }}>
@@ -128,6 +128,26 @@ const FontSizeControl: React.FC = () => {
 };
 
 export default FontSizeControl;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

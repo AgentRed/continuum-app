@@ -4,9 +4,10 @@ import { useContentScale } from "../context/FontSizeContext";
 
 interface ContentRootProps {
   children: React.ReactNode;
+  style?: React.CSSProperties;
 }
 
-const ContentRoot: React.FC<ContentRootProps> = ({ children }) => {
+const ContentRoot: React.FC<ContentRootProps> = ({ children, style }) => {
   const { contentScale } = useContentScale();
   
   console.log("ContentRoot: Applying zoom scale:", contentScale);
@@ -16,6 +17,7 @@ const ContentRoot: React.FC<ContentRootProps> = ({ children }) => {
       style={{ 
         zoom: contentScale,
         width: "100%",
+        ...style,
       }}
     >
       {children}
@@ -24,6 +26,32 @@ const ContentRoot: React.FC<ContentRootProps> = ({ children }) => {
 };
 
 export default ContentRoot;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

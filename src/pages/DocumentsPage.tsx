@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Alert,
   Badge,
   Button,
   Checkbox,
-  Drawer,
   Group,
   Loader,
   Modal,
@@ -15,11 +15,12 @@ import {
   Text,
   Textarea,
   TextInput,
-  TypographyStylesProvider,
 } from "@mantine/core";
-import { IconPlus } from "@tabler/icons-react";
-import ReactMarkdown from "react-markdown";
-import GlossaryTextWrapper from "../components/GlossaryTextWrapper";
+import { Icons } from "../ui/icons";
+import ContentQualityBadge from "../components/ContentQualityBadge";
+import DocumentHealthIndicator from "../components/DocumentHealthIndicator";
+import { useContentQuality } from "../context/ContentQualityContext";
+import { API_BASE } from "../config";
 
 type Document = {
   id: string;
@@ -49,7 +50,8 @@ type DocumentsPageProps = {
 };
 
 export default function DocumentsPage({ palette }: DocumentsPageProps) {
-  const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8080";
+  const navigate = useNavigate();
+  const { refresh: refreshQuality, loading: qualityLoading, documentById, documentByKey } = useContentQuality();
 
   const [nodes, setNodes] = useState<Node[]>([]);
   const [nodesLoading, setNodesLoading] = useState(false);
@@ -58,8 +60,6 @@ export default function DocumentsPage({ palette }: DocumentsPageProps) {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [documentsLoading, setDocumentsLoading] = useState(false);
   const [documentsError, setDocumentsError] = useState<string | null>(null);
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
-  const [drawerOpened, setDrawerOpened] = useState(false);
 
   // Create Document modal state
   const [createDocumentOpened, setCreateDocumentOpened] = useState(false);
@@ -122,8 +122,7 @@ export default function DocumentsPage({ palette }: DocumentsPageProps) {
   }, [selectedNodeId, API_BASE]);
 
   const handleRowClick = (document: Document) => {
-    setSelectedDocument(document);
-    setDrawerOpened(true);
+    navigate(`/documents/${document.id}`);
   };
 
   const handleCreateDocument = async () => {
@@ -213,19 +212,35 @@ export default function DocumentsPage({ palette }: DocumentsPageProps) {
               View and browse documents across all nodes.
             </Text>
           </Stack>
-          <Button
-            leftSection={<IconPlus size={16} />}
-            onClick={() => setCreateDocumentOpened(true)}
-            size="sm"
-            styles={{
-              root: {
-                backgroundColor: palette.accent,
-                color: palette.background,
-              },
-            }}
-          >
-            Add Document
-          </Button>
+          <Group gap="xs">
+            <Button
+              leftSection={<Icons.Refresh size={16} />}
+              onClick={refreshQuality}
+              size="sm"
+              loading={qualityLoading}
+              variant="subtle"
+              styles={{
+                root: {
+                  color: palette.text,
+                },
+              }}
+            >
+              Refresh Quality
+            </Button>
+            <Button
+              leftSection={<Icons.Add size={16} />}
+              onClick={() => setCreateDocumentOpened(true)}
+              size="sm"
+              styles={{
+                root: {
+                  backgroundColor: palette.accent,
+                  color: palette.background,
+                },
+              }}
+            >
+              Add Document
+            </Button>
+          </Group>
         </Group>
       </Paper>
 
@@ -343,12 +358,14 @@ export default function DocumentsPage({ palette }: DocumentsPageProps) {
             >
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th style={{ width: "25%" }}>Title</Table.Th>
-                  <Table.Th style={{ width: "18%" }}>Node</Table.Th>
+                  <Table.Th style={{ width: "16%" }}>Title</Table.Th>
+                  <Table.Th style={{ width: "14%" }}>Node</Table.Th>
+                  <Table.Th style={{ width: "10%", textAlign: "center" }}>Health</Table.Th>
+                  <Table.Th style={{ width: "10%", textAlign: "center" }}>Quality</Table.Th>
                   <Table.Th style={{ width: "10%", textAlign: "center" }}>Governance</Table.Th>
                   <Table.Th style={{ width: "10%", textAlign: "center" }}>RAG</Table.Th>
-                  <Table.Th style={{ width: "18%", whiteSpace: "nowrap" }}>Updated</Table.Th>
-                  <Table.Th style={{ width: "19%", whiteSpace: "nowrap" }}>Created</Table.Th>
+                  <Table.Th style={{ width: "15%", whiteSpace: "nowrap" }}>Updated</Table.Th>
+                  <Table.Th style={{ width: "15%", whiteSpace: "nowrap" }}>Created</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -358,15 +375,36 @@ export default function DocumentsPage({ palette }: DocumentsPageProps) {
                     onClick={() => handleRowClick(doc)}
                     style={{ cursor: "pointer" }}
                   >
-                    <Table.Td style={{ width: "25%" }}>
-                      <Text size="sm" fw={500} lineClamp={1} c="#ffffff">
+                    <Table.Td style={{ width: "16%" }}>
+                      <Text size="sm" fw={500} lineClamp={1} c={palette.text}>
                         {doc.title}
                       </Text>
                     </Table.Td>
-                    <Table.Td style={{ width: "18%" }}>
-                      <Text size="sm" lineClamp={1} c="#ffffff">
+                    <Table.Td style={{ width: "14%" }}>
+                      <Text size="sm" lineClamp={1} c={palette.text}>
                         {doc.metadata?.nodeName || doc.source}
                       </Text>
+                    </Table.Td>
+                    <Table.Td style={{ width: "10%", textAlign: "center" }}>
+                      <DocumentHealthIndicator
+                        entityType="DOCUMENT"
+                        id={doc.id}
+                        title={doc.title}
+                        content={doc.content}
+                        compact
+                      />
+                    </Table.Td>
+                    <Table.Td style={{ width: "10%", textAlign: "center" }}>
+                      {(() => {
+                        const auditItem = documentById[doc.id] || (doc.title ? documentByKey[doc.title.toLowerCase()] : null);
+                        return (
+                          <ContentQualityBadge
+                            severity={auditItem?.severity || null}
+                            reasons={auditItem?.reasons || []}
+                            compact
+                          />
+                        );
+                      })()}
                     </Table.Td>
                     <Table.Td style={{ width: "10%", textAlign: "center" }}>
                       <Badge
@@ -386,13 +424,13 @@ export default function DocumentsPage({ palette }: DocumentsPageProps) {
                         {doc.ragReady ? "Ready" : "No"}
                       </Badge>
                     </Table.Td>
-                    <Table.Td style={{ width: "18%" }}>
-                      <Text size="xs" lineClamp={1} c="#ffffff">
+                    <Table.Td style={{ width: "15%" }}>
+                      <Text size="xs" lineClamp={1} c={palette.text}>
                         {formatDate(doc.updatedAt)}
                       </Text>
                     </Table.Td>
-                    <Table.Td style={{ width: "19%" }}>
-                      <Text size="xs" lineClamp={1} c="#ffffff">
+                    <Table.Td style={{ width: "15%" }}>
+                      <Text size="xs" lineClamp={1} c={palette.text}>
                         {doc.metadata?.createdAt
                           ? formatDate(doc.metadata.createdAt)
                           : "—"}
@@ -405,207 +443,6 @@ export default function DocumentsPage({ palette }: DocumentsPageProps) {
           )}
         </Stack>
       </Paper>
-
-      {/* Document Detail Drawer */}
-      <Drawer
-        opened={drawerOpened}
-        onClose={() => setDrawerOpened(false)}
-        title={selectedDocument?.title}
-        position="right"
-        size="lg"
-        styles={{
-          content: {
-            backgroundColor: palette.surface,
-            color: palette.text,
-          },
-          header: {
-            backgroundColor: palette.surface,
-            borderBottom: `1px solid ${palette.border}`,
-          },
-          body: {
-            backgroundColor: palette.background,
-          },
-        }}
-      >
-        {selectedDocument && (
-          <Stack gap="md">
-            <Stack gap="xs">
-              <Text size="sm" fw={600} c={palette.text}>
-                Title
-              </Text>
-              <Text size="sm" c={palette.text}>
-                {selectedDocument.title}
-              </Text>
-            </Stack>
-
-            <Stack gap="xs">
-              <Text size="sm" fw={600} c={palette.text}>
-                Node
-              </Text>
-              <Text size="sm" c={palette.text}>
-                {selectedDocument.metadata?.nodeName || selectedDocument.source}
-              </Text>
-            </Stack>
-
-            <Stack gap="xs">
-              <Text size="sm" fw={600} c={palette.text}>
-                Version
-              </Text>
-              <Text size="sm" c={palette.text}>
-                {selectedDocument.metadata?.version || "—"}
-              </Text>
-            </Stack>
-
-            <Stack gap="xs">
-              <Text size="sm" fw={600} c={palette.text}>
-                Governance
-              </Text>
-              <Badge
-                color={selectedDocument.isGovernance ? "yellow" : "blue"}
-                variant="filled"
-                size="sm"
-              >
-                {selectedDocument.isGovernance ? "Governed" : "Standard"}
-              </Badge>
-            </Stack>
-
-            <Stack gap="xs">
-              <Text size="sm" fw={600} c={palette.text}>
-                Content
-              </Text>
-              <Paper
-                p="sm"
-                radius="md"
-                style={{
-                  backgroundColor: palette.background,
-                  border: `1px solid ${palette.border}`,
-                  maxHeight: "400px",
-                  overflowY: "auto",
-                }}
-              >
-                {selectedDocument.content ? (
-                  <TypographyStylesProvider>
-                    <div
-                      style={{
-                        color: palette.textSoft,
-                        fontSize: "0.875rem",
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      <ReactMarkdown
-                        components={{
-                          // Process text nodes in paragraphs
-                          p: ({ children, ...props }) => {
-                            const processChildren = (nodes: React.ReactNode): React.ReactNode => {
-                              return React.Children.map(nodes, (child, index) => {
-                                if (typeof child === "string") {
-                                  return (
-                                    <GlossaryTextWrapper
-                                      key={`p-text-${index}`}
-                                      text={child}
-                                      palette={palette}
-                                    />
-                                  );
-                                }
-                                if (React.isValidElement(child)) {
-                                  // Don't process code blocks
-                                  if (child.type === "code" || child.type === "pre") {
-                                    return child;
-                                  }
-                                  // Recursively process nested children
-                                  const childProps = child.props as { children?: React.ReactNode };
-                                  if (childProps?.children) {
-                                    return React.cloneElement(
-                                      child,
-                                      { key: child.key || `p-child-${index}` },
-                                      processChildren(childProps.children)
-                                    );
-                                  }
-                                }
-                                return child;
-                              });
-                            };
-                            return <p {...props}>{processChildren(children)}</p>;
-                          },
-                          // Process text nodes in list items
-                          li: ({ children, ...props }) => {
-                            const processChildren = (nodes: React.ReactNode): React.ReactNode => {
-                              return React.Children.map(nodes, (child, index) => {
-                                if (typeof child === "string") {
-                                  return (
-                                    <GlossaryTextWrapper
-                                      key={`li-text-${index}`}
-                                      text={child}
-                                      palette={palette}
-                                    />
-                                  );
-                                }
-                                if (React.isValidElement(child)) {
-                                  if (child.type === "code" || child.type === "pre") {
-                                    return child;
-                                  }
-                                  const childProps = child.props as { children?: React.ReactNode };
-                                  if (childProps?.children) {
-                                    return React.cloneElement(
-                                      child,
-                                      { key: child.key || `li-child-${index}` },
-                                      processChildren(childProps.children)
-                                    );
-                                  }
-                                }
-                                return child;
-                              });
-                            };
-                            return <li {...props}>{processChildren(children)}</li>;
-                          },
-                          // Style inline code (don't process glossary terms)
-                          code: ({ children, ...props }) => (
-                            <code
-                              {...props}
-                              style={{
-                                fontFamily: "monospace",
-                                backgroundColor: palette.surface,
-                                padding: "2px 4px",
-                                borderRadius: "3px",
-                                fontSize: "0.875em",
-                              }}
-                            >
-                              {children}
-                            </code>
-                          ),
-                          // Style code blocks (don't process glossary terms)
-                          pre: ({ children, ...props }) => (
-                            <pre
-                              {...props}
-                              style={{
-                                fontFamily: "monospace",
-                                backgroundColor: palette.surface,
-                                padding: "12px",
-                                borderRadius: "4px",
-                                overflowX: "auto",
-                                fontSize: "0.875em",
-                                lineHeight: 1.5,
-                              }}
-                            >
-                              {children}
-                            </pre>
-                          ),
-                        }}
-                      >
-                        {selectedDocument.content}
-                      </ReactMarkdown>
-                    </div>
-                  </TypographyStylesProvider>
-                ) : (
-                  <Text size="xs" c={palette.textSoft} style={{ fontStyle: "italic" }}>
-                    No content
-                  </Text>
-                )}
-              </Paper>
-            </Stack>
-          </Stack>
-        )}
-      </Drawer>
 
       {/* Create Document Modal */}
       <Modal
@@ -696,7 +533,7 @@ export default function DocumentsPage({ palette }: DocumentsPageProps) {
                 backgroundColor: palette.header,
                 borderColor: palette.border,
                 color: palette.text,
-                fontFamily: "monospace",
+                fontFamily: "var(--font-mono)",
               },
             }}
           />
@@ -752,5 +589,9 @@ export default function DocumentsPage({ palette }: DocumentsPageProps) {
     </Stack>
   );
 }
+
+
+
+
 
 
